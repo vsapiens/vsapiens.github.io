@@ -1,0 +1,64 @@
+---
+const skillCategories = [
+  {
+    title: 'Languages',
+    skills: [
+      { name: 'TypeScript', icon: '🟦' },
+      { name: 'Python', icon: '🐍' },
+      { name: 'JavaScript', icon: '⚡' },
+      { name: 'SQL', icon: '🗃️' },
+    ],
+  },
+  {
+    title: 'Frameworks & Runtime',
+    skills: [
+      { name: 'Node.js', icon: '🟩' },
+      { name: 'LangChain', icon: '🔗' },
+      { name: 'Astro', icon: '🚀' },
+    ],
+  },
+  {
+    title: 'Infrastructure',
+    skills: [
+      { name: 'Docker', icon: '🐳' },
+      { name: 'Linux', icon: '🐧' },
+      { name: 'PostgreSQL', icon: '🐘' },
+      { name: 'Git', icon: '📦' },
+    ],
+  },
+  {
+    title: 'AI / ML',
+    skills: [
+      { name: 'LLM Agents', icon: '🤖' },
+      { name: 'Data Modeling', icon: '📐' },
+      { name: 'Prompt Engineering', icon: '💬' },
+    ],
+  },
+];
+---
+
+<section class="py-20 bg-bg-elevated/30">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-2xl font-bold text-text-heading font-mono mb-2">
+      <span class="text-accent-purple">~/</span>skills
+    </h2>
+    <div class="h-px bg-gradient-to-r from-accent-purple/50 to-transparent mb-8"></div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      {skillCategories.map((category) => (
+        <div class="bg-bg-elevated border border-white/5 rounded-lg p-6">
+          <h3 class="text-sm font-mono text-accent-purple uppercase tracking-wider mb-4">
+            {category.title}
+          </h3>
+          <div class="flex flex-wrap gap-2">
+            {category.skills.map((skill) => (
+              <span class="px-3 py-1.5 bg-bg-surface rounded-md text-sm text-text-primary border border-white/5 hover:border-accent-purple/30 hover:shadow-[0_0_10px_rgba(167,139,250,0.1)] transition-all">
+                {skill.icon} {skill.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

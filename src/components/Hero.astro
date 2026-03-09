@@ -1,0 +1,81 @@
+---
+const avatarUrl = 'https://github.com/vsapiens.png';
+---
+
+<section class="min-h-screen flex items-center justify-center relative overflow-hidden">
+  <!-- Animated grid background -->
+  <div class="absolute inset-0 bg-[linear-gradient(rgba(167,139,250,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.03)_1px,transparent_1px)] bg-[size:60px_60px]"></div>
+
+  <!-- Radial glow -->
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent-purple/5 rounded-full blur-3xl"></div>
+
+  <div class="relative z-10 text-center px-4">
+    <!-- Avatar -->
+    <div class="mb-8 inline-block">
+      <div class="w-32 h-32 rounded-full ring-2 ring-accent-purple ring-offset-4 ring-offset-bg-primary overflow-hidden shadow-[0_0_40px_rgba(167,139,250,0.2)]">
+        <img src={avatarUrl} alt="Erick González" class="w-full h-full object-cover" loading="eager" />
+      </div>
+    </div>
+
+    <!-- Name -->
+    <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-text-heading mb-4">
+      Erick González
+    </h1>
+
+    <!-- Tagline with typing effect -->
+    <div class="h-8 mb-8">
+      <span id="typed-tagline" class="text-lg sm:text-xl text-accent-purple font-mono"></span>
+      <span class="animate-pulse text-accent-purple font-mono">|</span>
+    </div>
+
+    <!-- CTA Buttons -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <a href="/projects" class="px-6 py-3 bg-accent-purple text-white font-medium rounded-lg hover:bg-accent-purple-dim transition-colors">
+        View Projects
+      </a>
+      <a href="/resume" class="px-6 py-3 border border-accent-purple text-accent-purple font-medium rounded-lg hover:bg-accent-purple/10 transition-colors">
+        Download Resume
+      </a>
+    </div>
+  </div>
+</section>
+
+<script>
+  const phrases = [
+    'Performance Engineer',
+    'Backend Dev',
+    'AI Builder',
+  ];
+  let phraseIndex = 0;
+  let charIndex = 0;
+  let isDeleting = false;
+  const el = document.getElementById('typed-tagline');
+
+  function type() {
+    if (!el) return;
+    const current = phrases[phraseIndex];
+
+    if (isDeleting) {
+      el.textContent = current.substring(0, charIndex - 1);
+      charIndex--;
+    } else {
+      el.textContent = current.substring(0, charIndex + 1);
+      charIndex++;
+    }
+
+    let delay = isDeleting ? 50 : 100;
+
+    if (!isDeleting && charIndex === current.length) {
+      delay = 2000;
+      isDeleting = true;
+    } else if (isDeleting && charIndex === 0) {
+      isDeleting = false;
+      phraseIndex = (phraseIndex + 1) % phrases.length;
+      delay = 500;
+    }
+
+    setTimeout(type, delay);
+  }
+
+  type();
+</script>

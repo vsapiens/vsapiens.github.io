@@ -1,10 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import About from '../components/About.astro';
+import SkillsGrid from '../components/SkillsGrid.astro';
 ---
 
-<BaseLayout title="Home" description="Erick González — Performance Engineer, Backend Dev, and AI Builder.">
-  <div class="max-w-6xl mx-auto px-4 py-20 text-center">
-    <h1 class="text-4xl font-bold text-text-heading">Coming Soon</h1>
-    <p class="text-text-secondary mt-4">Site under construction.</p>
-  </div>
+<BaseLayout title="Home" description="Erick González — Performance Engineer, Backend Dev, and AI Builder. Making systems faster and building with AI.">
+  <Hero />
+  <About />
+  <SkillsGrid />
 </BaseLayout>
