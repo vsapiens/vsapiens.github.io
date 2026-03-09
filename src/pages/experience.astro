@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ExperienceTimeline from '../components/ExperienceTimeline.astro';
+---
+
+<BaseLayout title="Experience" description="Erick González's professional experience — Performance Engineering, Backend Development, and AI.">
+  <section class="py-20">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-bold text-text-heading font-mono mb-2">
+        <span class="text-accent-purple">~/</span>experience
+      </h1>
+      <div class="h-px bg-gradient-to-r from-accent-purple/50 to-transparent mb-12"></div>
+
+      <ExperienceTimeline />
+    </div>
+  </section>
+</BaseLayout>

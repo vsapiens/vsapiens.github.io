@@ -1,0 +1,26 @@
+[
+  {
+    "company": "Company Name",
+    "role": "Performance Engineer",
+    "startDate": "2023-01",
+    "endDate": "Present",
+    "description": [
+      "Led performance optimization efforts reducing API latency by 40%",
+      "Built automated load testing pipelines with custom tooling",
+      "Diagnosed and resolved critical infrastructure bottlenecks"
+    ],
+    "tech": ["Node.js", "TypeScript", "PostgreSQL", "Docker", "Linux"]
+  },
+  {
+    "company": "Previous Company",
+    "role": "Backend Developer",
+    "startDate": "2021-06",
+    "endDate": "2022-12",
+    "description": [
+      "Developed RESTful APIs serving 10K+ requests per second",
+      "Implemented CI/CD pipelines and containerized deployments",
+      "Mentored junior developers on backend best practices"
+    ],
+    "tech": ["Python", "Node.js", "Docker", "PostgreSQL"]
+  }
+]
