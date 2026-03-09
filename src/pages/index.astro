@@ -1,18 +1,10 @@
 ---
-import '../styles/global.css';
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>vsapiens</title>
-	</head>
-	<body>
-		<h1 class="text-4xl font-bold text-text-heading text-center mt-20">vsapiens</h1>
-		<p class="text-text-secondary text-center mt-4">Portfolio coming soon.</p>
-	</body>
-</html>
+<BaseLayout title="Home" description="Erick González — Performance Engineer, Backend Dev, and AI Builder.">
+  <div class="max-w-6xl mx-auto px-4 py-20 text-center">
+    <h1 class="text-4xl font-bold text-text-heading">Coming Soon</h1>
+    <p class="text-text-secondary mt-4">Site under construction.</p>
+  </div>
+</BaseLayout>

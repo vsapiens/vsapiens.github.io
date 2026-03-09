@@ -1,0 +1,76 @@
+---
+const navLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/experience', label: 'Experience' },
+  { href: '/projects', label: 'Projects' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/education', label: 'Education' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/resume', label: 'Resume' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<nav class="fixed top-0 left-0 right-0 z-50 bg-bg-primary/90 backdrop-blur-md border-b border-white/5">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <a href="/" class="font-mono font-bold text-lg text-accent-purple hover:text-white transition-colors">
+        ~/vsapiens
+      </a>
+
+      <!-- Desktop Nav -->
+      <div class="hidden md:flex items-center space-x-1">
+        {navLinks.map((link) => (
+          <a
+            href={link.href}
+            class:list={[
+              'px-3 py-2 rounded-md text-sm font-medium transition-colors',
+              currentPath === link.href
+                ? 'text-accent-purple bg-accent-purple/10'
+                : 'text-text-secondary hover:text-accent-purple hover:bg-accent-purple/5',
+            ]}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button
+        id="mobile-menu-btn"
+        class="md:hidden text-text-secondary hover:text-accent-purple transition-colors"
+        aria-label="Toggle menu"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path id="menu-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mobile Nav -->
+    <div id="mobile-menu" class="hidden md:hidden pb-4">
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class:list={[
+            'block px-3 py-2 rounded-md text-sm font-medium transition-colors',
+            currentPath === link.href
+              ? 'text-accent-purple bg-accent-purple/10'
+              : 'text-text-secondary hover:text-accent-purple hover:bg-accent-purple/5',
+          ]}
+        >
+          {link.label}
+        </a>
+      ))}
+    </div>
+  </div>
+</nav>
+
+<script>
+  const btn = document.getElementById('mobile-menu-btn');
+  const menu = document.getElementById('mobile-menu');
+  btn?.addEventListener('click', () => {
+    menu?.classList.toggle('hidden');
+  });
+</script>
