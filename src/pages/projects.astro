@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { fetchPinnedRepos } from '../lib/github';
+
+const repos = await fetchPinnedRepos();
+---
+
+<BaseLayout title="Projects" description="Open source projects and repositories by Erick González.">
+  <section class="py-20">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-bold text-text-heading font-mono mb-2">
+        <span class="text-accent-purple">~/</span>projects
+      </h1>
+      <p class="text-text-secondary mb-2">Public repositories from GitHub, refreshed on each build.</p>
+      <div class="h-px bg-gradient-to-r from-accent-purple/50 to-transparent mb-12"></div>
+
+      {repos.length > 0 ? (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {repos.map((repo) => (
+            <ProjectCard repo={repo} />
+          ))}
+        </div>
+      ) : (
+        <p class="text-text-secondary text-center py-12">No projects found. Check back later.</p>
+      )}
+
+      <div class="text-center mt-12">
+        <a
+          href="https://github.com/vsapiens?tab=repositories"
+          target="_blank"
+          rel="noopener"
+          class="inline-flex items-center gap-2 px-5 py-2.5 border border-accent-purple text-accent-purple rounded-lg hover:bg-accent-purple/10 transition-colors font-medium text-sm"
+        >
+          View all on GitHub
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
