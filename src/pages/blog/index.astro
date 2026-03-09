@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { getCollection } from 'astro:content';
+import externalPosts from '../../data/external-posts.json';
+
+const internalPosts = (await getCollection('blog'))
+  .filter((post) => !post.data.draft)
+  .map((post) => ({
+    title: post.data.title,
+    description: post.data.description,
+    date: post.data.date,
+    tags: post.data.tags,
+    href: `/blog/${post.id}`,
+    isExternal: false,
+    readTime: `${Math.ceil(post.body!.split(/\s+/).length / 200)} min read`,
+  }));
+
+const external = externalPosts.map((post) => ({
+  ...post,
+  date: new Date(post.date),
+  href: post.url,
+  isExternal: true,
+}));
+
+const allPosts = [...internalPosts, ...external].sort(
+  (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+);
+---
+
+<BaseLayout title="Blog" description="Articles on performance engineering, backend development, and AI by Erick González.">
+  <section class="py-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-bold text-text-heading font-mono mb-2">
+        <span class="text-accent-purple">~/</span>blog
+      </h1>
+      <p class="text-text-secondary mb-2">Thoughts on performance, backends, and AI.</p>
+      <div class="h-px bg-gradient-to-r from-accent-purple/50 to-transparent mb-12"></div>
+
+      <div class="space-y-4">
+        {allPosts.map((post) => (
+          <BlogCard
+            title={post.title}
+            description={post.description}
+            date={post.date}
+            tags={post.tags}
+            href={post.href}
+            isExternal={post.isExternal}
+            platform={post.isExternal ? (post as any).platform : undefined}
+            readTime={!post.isExternal ? (post as any).readTime : undefined}
+          />
+        ))}
+      </div>
+
+      {allPosts.length === 0 && (
+        <p class="text-text-secondary text-center py-12">No posts yet. Check back soon.</p>
+      )}
+    </div>
+  </section>
+</BaseLayout>
