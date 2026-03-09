@@ -1,9 +1,20 @@
 [
   {
+    "company": "EPAM Systems",
+    "role": "Lead Performance Engineer",
+    "startDate": "2026-01",
+    "endDate": "Present",
+    "description": [
+      "Lead performance engineering for backend and distributed systems in cloud environments, designing testing strategies and establishing CI/CD quality gates to reduce production risk",
+      "Integrate observability tooling and collaborate with engineers and technical leaders to identify bottlenecks, plan capacity, and build repeatable performance practices for APIs and microservices"
+    ],
+    "tech": ["Performance Testing", "CI/CD", "Observability", "Cloud", "Microservices"]
+  },
+  {
     "company": "SailPoint Technologies",
     "role": "Software Engineer",
     "startDate": "2024-01",
-    "endDate": "Present",
+    "endDate": "2025-12",
     "description": [
       "Developed and executed performance tests in Kubernetes hosted in AWS EC2 services using k6, saving $100k in resource allocation and improving response performance from 10s to 50ms",
       "Exported logs to AWS S3 buckets using AWS CloudWatch to monitor performance and availability from PostgreSQL databases, reducing downtime by 40%"
