@@ -1,26 +1,36 @@
 [
   {
-    "company": "Company Name",
-    "role": "Performance Engineer",
-    "startDate": "2023-01",
+    "company": "SailPoint Technologies",
+    "role": "Software Engineer",
+    "startDate": "2024-01",
     "endDate": "Present",
     "description": [
-      "Led performance optimization efforts reducing API latency by 40%",
-      "Built automated load testing pipelines with custom tooling",
-      "Diagnosed and resolved critical infrastructure bottlenecks"
+      "Developed and executed performance tests in Kubernetes hosted in AWS EC2 services using k6, saving $100k in resource allocation and improving response performance from 10s to 50ms",
+      "Exported logs to AWS S3 buckets using AWS CloudWatch to monitor performance and availability from PostgreSQL databases, reducing downtime by 40%"
     ],
-    "tech": ["Node.js", "TypeScript", "PostgreSQL", "Docker", "Linux"]
+    "tech": ["Kubernetes", "AWS", "k6", "PostgreSQL", "CloudWatch", "S3"]
   },
   {
-    "company": "Previous Company",
-    "role": "Backend Developer",
-    "startDate": "2021-06",
-    "endDate": "2022-12",
+    "company": "Globant Consulting",
+    "role": "Software Engineer",
+    "startDate": "2022-01",
+    "endDate": "2023-12",
     "description": [
-      "Developed RESTful APIs serving 10K+ requests per second",
-      "Implemented CI/CD pipelines and containerized deployments",
-      "Mentored junior developers on backend best practices"
+      "Conducted cloud load testing with k6 framework for services up to 100k RPS and implemented CI/CD asynchronous pipelines for an online dealer auction platform",
+      "Analyzed New Relic results to provide optimal resource management for Kubernetes across multiple services, improving performance and cost optimization"
     ],
-    "tech": ["Python", "Node.js", "Docker", "PostgreSQL"]
+    "tech": ["k6", "Kubernetes", "New Relic", "CI/CD", "Docker"]
+  },
+  {
+    "company": "Kodda MX",
+    "role": "Backend Engineer",
+    "startDate": "2020-08",
+    "endDate": "2021-12",
+    "description": [
+      "Maintained application flow for medical claims and insurance policies — accepted into the prestigious YC Startup Batch in Summer 2021",
+      "Built features including user authentication, data visualization, and form validation using JavaScript",
+      "Deployed the application using Google Cloud Platform and Node.js with auto-scalable infrastructure handling up to 300k TPS"
+    ],
+    "tech": ["JavaScript", "Node.js", "Google Cloud Platform", "PostgreSQL"]
   }
 ]
