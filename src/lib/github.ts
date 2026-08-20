@@ -25,9 +25,9 @@ export function getLanguageColor(language: string): string {
   return languageColors[language] ?? '#8b949e';
 }
 
-export async function fetchPinnedRepos(): Promise<GitHubRepo[]> {
+export async function fetchPinnedRepos(perPage = 30): Promise<GitHubRepo[]> {
   const res = await fetch(
-    `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=6&type=public`,
+    `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=${perPage}&type=public`,
     {
       headers: {
         Accept: 'application/vnd.github.v3+json',

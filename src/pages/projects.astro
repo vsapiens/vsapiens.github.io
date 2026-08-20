@@ -1,31 +1,122 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ProjectCard from '../components/ProjectCard.astro';
-import { fetchPinnedRepos } from '../lib/github';
+import FeaturedProjectCard from '../components/FeaturedProjectCard.astro';
+import ProjectItem from '../components/ProjectItem.astro';
+import projectsData from '../data/projects.json';
+import { categoryOrder, type Project } from '../lib/projects';
 
-const repos = await fetchPinnedRepos();
+const projects = projectsData as Project[];
+const featured = projects.filter((p) => p.featured);
+const rest = projects.filter((p) => !p.featured);
+
+// Group the non-featured projects by category, in canonical order.
+const grouped = categoryOrder
+  .map((category) => ({
+    category,
+    items: rest.filter((p) => p.category === category),
+  }))
+  .filter((g) => g.items.length > 0);
+
+// Dashboard counts.
+const total = projects.length;
+const liveCount = projects.filter((p) => p.status === 'live' || p.status === 'beta').length;
+const ossCount = projects.filter((p) => p.status === 'oss').length;
+const buildingCount = projects.filter((p) => p.status === 'building').length;
+
+const filters = ['All', ...categoryOrder];
 ---
 
-<BaseLayout title="Projects" description="Open source projects and repositories by Erick González.">
+<BaseLayout title="Projects" description="Selected projects by Erick González — AI SaaS products, performance-engineering tooling, and open source.">
   <section class="py-20">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
       <h1 class="text-3xl font-bold text-text-heading font-mono mb-2">
         <span class="text-accent-purple">~/</span>projects
       </h1>
-      <p class="text-text-secondary mb-2">Public repositories from GitHub, refreshed on each build.</p>
-      <div class="h-px bg-gradient-to-r from-accent-purple/50 to-transparent mb-12"></div>
+      <p class="text-text-secondary mb-5 max-w-2xl">
+        A status board of what I've shipped and what I'm building — products in production,
+        performance-engineering tooling, and open source.
+      </p>
 
-      {repos.length > 0 ? (
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {repos.map((repo) => (
-            <ProjectCard repo={repo} />
+      <!-- Dashboard summary strip -->
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-mono mb-6">
+        <span class="flex items-center gap-2 text-text-secondary">
+          <span class="w-2 h-2 rounded-full bg-text-secondary"></span>{total} tracked
+        </span>
+        <span class="flex items-center gap-2 text-text-secondary">
+          <span class="relative flex h-2 w-2">
+            <span class="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style="background-color:#3fb950"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2" style="background-color:#3fb950"></span>
+          </span>{liveCount} live
+        </span>
+        <span class="flex items-center gap-2 text-text-secondary">
+          <span class="w-2 h-2 rounded-full" style="background-color:#39c5cf"></span>{ossCount} open source
+        </span>
+        <span class="flex items-center gap-2 text-text-secondary">
+          <span class="w-2 h-2 rounded-full" style="background-color:#a78bfa"></span>{buildingCount} building
+        </span>
+      </div>
+
+      <div class="h-px bg-gradient-to-r from-accent-purple/50 to-transparent mb-8"></div>
+
+      <!-- Filter tabs -->
+      <div id="project-filters" class="flex flex-wrap gap-2 mb-10">
+        {filters.map((f, i) => (
+          <button
+            type="button"
+            data-filter={f}
+            class:list={[
+              'filter-btn px-3.5 py-1.5 rounded-lg text-sm font-mono border transition-colors',
+              i === 0
+                ? 'bg-accent-purple/10 border-accent-purple/40 text-accent-purple'
+                : 'bg-bg-elevated border-white/5 text-text-secondary hover:text-accent-purple hover:border-accent-purple/30',
+            ]}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      <!-- Featured -->
+      <div class="project-section" data-group="featured">
+        <h2 class="section-heading text-sm font-mono text-accent-purple uppercase tracking-wider mb-5 flex items-center gap-2">
+          <span class="text-text-secondary">##</span> Featured
+        </h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-16">
+          {featured.map((project) => (
+            <div class="project-card" data-category={project.category}>
+              <FeaturedProjectCard project={project} />
+            </div>
           ))}
         </div>
-      ) : (
-        <p class="text-text-secondary text-center py-12">No projects found. Check back later.</p>
-      )}
+      </div>
 
-      <div class="text-center mt-12">
+      <!-- Grouped by category -->
+      {grouped.map(({ category, items }) => (
+        <div class="project-section" data-group={category}>
+          <h2 class="section-heading text-sm font-mono text-accent-purple uppercase tracking-wider mb-5 flex items-center gap-2">
+            <span class="text-text-secondary">##</span> {category}
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-16">
+            {items.map((project) => (
+              <div class="project-card" data-category={project.category}>
+                <ProjectItem project={project} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <!-- No results (filter) -->
+      <p id="no-results" class="hidden text-text-secondary text-center py-12 font-mono">
+        No projects in this category.
+      </p>
+
+      <!-- CTA -->
+      <div class="mt-4 pt-12 border-t border-white/5 text-center">
+        <p class="text-text-secondary text-sm mb-5 font-mono">
+          Older repos, coursework, and experiments live on GitHub.
+        </p>
         <a
           href="https://github.com/vsapiens?tab=repositories"
           target="_blank"
@@ -41,3 +132,44 @@ const repos = await fetchPinnedRepos();
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('.filter-btn'));
+  const sections = Array.from(document.querySelectorAll<HTMLElement>('.project-section'));
+  const noResults = document.getElementById('no-results');
+
+  const activeClasses = ['bg-accent-purple/10', 'border-accent-purple/40', 'text-accent-purple'];
+  const idleClasses = ['bg-bg-elevated', 'border-white/5', 'text-text-secondary'];
+
+  function applyFilter(filter: string) {
+    let anyVisible = false;
+
+    sections.forEach((section) => {
+      const cards = Array.from(section.querySelectorAll<HTMLElement>('.project-card'));
+      let sectionVisible = 0;
+
+      cards.forEach((card) => {
+        const match = filter === 'All' || card.dataset.category === filter;
+        card.classList.toggle('hidden', !match);
+        if (match) sectionVisible++;
+      });
+
+      section.classList.toggle('hidden', sectionVisible === 0);
+      if (sectionVisible > 0) anyVisible = true;
+    });
+
+    noResults?.classList.toggle('hidden', anyVisible);
+  }
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      buttons.forEach((b) => {
+        b.classList.remove(...activeClasses);
+        b.classList.add(...idleClasses);
+      });
+      btn.classList.remove(...idleClasses);
+      btn.classList.add(...activeClasses);
+      applyFilter(btn.dataset.filter || 'All');
+    });
+  });
+</script>

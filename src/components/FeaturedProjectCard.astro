@@ -1,0 +1,88 @@
+---
+import StatusBadge from './StatusBadge.astro';
+import { getLanguageColor, type Project } from '../lib/projects';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const hasLive = Boolean(project.links.live);
+const hasRepo = Boolean(project.links.repo);
+---
+
+<article
+  class="group relative bg-bg-elevated border border-white/5 rounded-xl p-6 sm:p-8 flex flex-col h-full hover:border-accent-purple/30 hover:shadow-[0_0_30px_rgba(167,139,250,0.08)] transition-all duration-300"
+  data-category={project.category}
+  data-status={project.status}
+>
+  <!-- accent rail -->
+  <div class="absolute left-0 top-6 bottom-6 w-0.5 rounded-full bg-gradient-to-b from-accent-purple to-transparent"></div>
+
+  <header class="mb-3">
+    <div class="flex items-center justify-between gap-3 mb-2">
+      <div class="flex items-center gap-2 text-text-secondary font-mono text-xs min-w-0">
+        <span class="text-accent-purple">$</span>
+        <span class="truncate">{project.category}</span>
+        <span class="text-white/20">·</span>
+        <span class="flex-shrink-0">{project.year}</span>
+      </div>
+      <StatusBadge status={project.status} />
+    </div>
+    <h3 class="text-2xl font-bold text-text-heading font-mono leading-tight">
+      {project.name}
+    </h3>
+  </header>
+
+  <p class="text-accent-purple font-medium mb-4">{project.tagline}</p>
+  <p class="text-text-primary text-sm leading-relaxed mb-5">{project.description}</p>
+
+  {project.highlights && (
+    <ul class="space-y-2 mb-6">
+      {project.highlights.map((item) => (
+        <li class="text-text-secondary text-sm flex items-start gap-2.5">
+          <span class="text-accent-purple mt-0.5 font-mono flex-shrink-0">▸</span>
+          <span set:html={item.replace(/`([^`]+)`/g, '<code class="font-mono text-xs text-accent-purple bg-bg-surface px-1 py-0.5 rounded">$1</code>')} />
+        </li>
+      ))}
+    </ul>
+  )}
+
+  <div class="flex flex-wrap gap-1.5 mb-6 mt-auto">
+    {project.tech.map((t) => (
+      <span class="px-2 py-0.5 bg-bg-surface rounded text-xs text-text-secondary border border-white/5 font-mono">
+        {t}
+      </span>
+    ))}
+  </div>
+
+  <footer class="flex items-center gap-4 pt-5 border-t border-white/5">
+    {project.languages.map((lang) => (
+      <span class="flex items-center gap-1.5 text-xs text-text-secondary">
+        <span class="w-2.5 h-2.5 rounded-full" style={`background-color: ${getLanguageColor(lang)}`}></span>
+        {lang}
+      </span>
+    ))}
+
+    <div class="ml-auto flex items-center gap-3">
+      {hasRepo && (
+        <a href={project.links.repo} target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-accent-purple transition-colors">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
+          Source
+        </a>
+      )}
+      {hasLive && (
+        <a href={project.links.live} target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-accent-purple text-white rounded-lg hover:bg-accent-purple-dim transition-colors text-sm font-medium">
+          Visit
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+        </a>
+      )}
+      {!hasLive && !hasRepo && project.private && (
+        <span class="inline-flex items-center gap-1.5 text-xs text-text-secondary font-mono">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+          Private repo
+        </span>
+      )}
+    </div>
+  </footer>
+</article>

@@ -1,0 +1,29 @@
+---
+import { statusMeta, type ProjectStatus } from '../lib/projects';
+
+interface Props {
+  status: ProjectStatus;
+}
+
+const { status } = Astro.props;
+const meta = statusMeta[status];
+---
+
+<span
+  class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono font-medium whitespace-nowrap"
+  style={`color: ${meta.color}; background-color: ${meta.color}14; border: 1px solid ${meta.color}33;`}
+>
+  <span class="relative flex h-2 w-2">
+    {meta.pulse && (
+      <span
+        class="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full opacity-60"
+        style={`background-color: ${meta.color};`}
+      ></span>
+    )}
+    <span
+      class="relative inline-flex rounded-full h-2 w-2"
+      style={`background-color: ${meta.color};`}
+    ></span>
+  </span>
+  {meta.label}
+</span>
