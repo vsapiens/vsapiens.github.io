@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   --canvas: #F7F9FC;
@@ -21,6 +22,16 @@
   --color-grid-line: var(--grid-line);
   --color-muted-ink: var(--muted-ink);
   --color-surface: var(--surface);
+  /* Temporary aliases keep the routes preserved for Task 2 functional after Tailwind 4. */
+  --color-bg-primary: var(--canvas);
+  --color-bg-elevated: var(--surface);
+  --color-bg-surface: #EEF2F7;
+  --color-accent-purple: var(--systems-violet);
+  --color-accent-purple-dim: #5B21B6;
+  --color-accent-purple-glow: rgb(109 40 217 / 30%);
+  --color-text-primary: var(--ink);
+  --color-text-secondary: var(--muted-ink);
+  --color-text-heading: var(--ink);
   --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }

@@ -39,6 +39,17 @@ describe('quote helpers', () => {
     });
   });
 
+  test('rejects a non-empty service identifier that is not offered', () => {
+    expect(validateQuoteAnswers({ ...completeAnswers, serviceId: 'unsupported-service' })).toEqual({
+      valid: false,
+      errors: { serviceId: 'Choose a valid service.' },
+    });
+  });
+
+  test('accepts a complete quote with an offered service', () => {
+    expect(validateQuoteAnswers(completeAnswers)).toEqual({ valid: true, errors: {} });
+  });
+
   test('builds a recruiter-readable English brief from complete answers', () => {
     expect(buildQuoteBrief(completeAnswers, 'en')).toBe(
       'Project brief\n\nService: Performance audit\nInvestment: USD 1,500\nSituation: API p99 regressions under checkout load\nTimeline: Within 4 weeks\nBudget / context: Need an audit before the next launch.',

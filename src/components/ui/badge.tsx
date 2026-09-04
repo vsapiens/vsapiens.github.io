@@ -8,7 +8,7 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 const tones = {
   blue: 'border-technical-blue/30 bg-technical-blue/10 text-technical-blue',
   violet: 'border-systems-violet/30 bg-systems-violet/10 text-systems-violet',
-  coral: 'border-signal-coral/30 bg-signal-coral/10 text-signal-coral',
+  coral: 'border-signal-coral bg-signal-coral text-ink',
   neutral: 'border-grid-line bg-surface text-muted-ink',
 } as const;
 

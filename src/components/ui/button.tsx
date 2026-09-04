@@ -10,7 +10,7 @@ export const buttonVariants = cva(
         primary: 'bg-technical-blue text-white hover:bg-systems-violet',
         secondary: 'bg-surface text-ink border border-grid-line hover:border-technical-blue',
         ghost: 'text-ink hover:bg-grid-line/40',
-        signal: 'bg-signal-coral text-white hover:bg-signal-coral/90',
+        signal: 'bg-signal-coral text-ink hover:bg-[#FF6C54]',
       },
       size: {
         sm: 'h-8 px-3 text-sm',
