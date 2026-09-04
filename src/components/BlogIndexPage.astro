@@ -1,0 +1,24 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from './PageHero.astro';
+import { marketing } from '../data/content';
+import type { Locale } from '../data/site';
+import { getLocalizedPath } from '../lib/quote';
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const copy = marketing[locale];
+const posts = (await getCollection('blog')).filter((post) => !post.data.draft && (locale === 'es' ? post.id.startsWith('es/') : !post.id.startsWith('es/'))).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const entries = posts.map((post) => ({
+  title: post.data.title,
+  description: post.data.description,
+  date: post.data.date.toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+  readTime: Math.ceil((post.body?.split(/\s+/).length ?? 0) / 200),
+  href: getLocalizedPath(`/blog/${post.id.replace(/^es\//, '')}`, locale),
+  tags: post.data.tags,
+}));
+---
+<BaseLayout title={copy.meta.blog[0]} description={copy.meta.blog[1]} locale={locale}>
+  <PageHero title={copy.blog.title} intro={copy.blog.intro} marker={locale === 'es' ? 'CUADERNO / 8 ARTÍCULOS' : 'NOTEBOOK / 8 ARTICLES'} />
+  <section class="content-section"><div class="page-shell writing-archive">{entries.map((post, index) => <article><div class="writing-index">{String(index + 1).padStart(2, '0')}</div><div><time>{post.date} · {post.readTime} {copy.blog.readTime}</time><h2><a href={post.href}>{post.title}</a></h2><p>{post.description}</p><div class="tag-list">{post.tags.map((tag) => <span>{tag}</span>)}</div></div></article>)}{entries.length === 0 && <p>{copy.blog.empty}</p>}</div></section>
+</BaseLayout>

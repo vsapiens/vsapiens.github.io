@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from './PageHero.astro';
+import ServicesGrid from './ServicesGrid.astro';
+import { marketing } from '../data/content';
+import type { Locale } from '../data/site';
+import { getLocalizedPath } from '../lib/quote';
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const copy = marketing[locale];
+---
+<BaseLayout title={copy.meta.services[0]} description={copy.meta.services[1]} locale={locale}>
+  <PageHero title={copy.services.title} intro={copy.services.intro} marker={locale === 'es' ? 'ATLAS / SERVICIOS' : 'ATLAS / SERVICES'} />
+  <section class="content-section"><div class="page-shell"><ServicesGrid locale={locale} /><aside class="service-boundary"><p>{copy.services.boundary}</p><a class="button-link button-signal" href={getLocalizedPath('/contact', locale)}>{copy.home.closingCta}</a></aside></div></section>
+</BaseLayout>

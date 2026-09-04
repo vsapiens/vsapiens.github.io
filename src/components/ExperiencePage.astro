@@ -1,0 +1,11 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from './PageHero.astro';
+import ExperienceTimeline from './ExperienceTimeline.astro';
+import { marketing } from '../data/content';
+import type { Locale } from '../data/site';
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const copy = marketing[locale];
+---
+<BaseLayout title={copy.meta.experience[0]} description={copy.meta.experience[1]} locale={locale}><PageHero title={copy.experience.title} intro={copy.experience.intro} marker={locale === 'es' ? 'TRAYECTORIA / 2020—HOY' : 'PATH / 2020—NOW'} /><section class="content-section"><div class="page-shell"><p class="route-note">{copy.experience.legacy}</p><ExperienceTimeline locale={locale} /></div></section></BaseLayout>

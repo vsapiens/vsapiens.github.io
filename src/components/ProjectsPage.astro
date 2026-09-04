@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from './PageHero.astro';
+import ProjectArchive from './ProjectArchive.astro';
+import { marketing } from '../data/content';
+import type { Locale } from '../data/site';
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const copy = marketing[locale];
+---
+<BaseLayout title={copy.meta.projects[0]} description={copy.meta.projects[1]} locale={locale}>
+  <PageHero title={copy.work.archiveTitle} intro={copy.work.archiveIntro} marker={locale === 'es' ? 'ARCHIVO / 15 PROYECTOS' : 'ARCHIVE / 15 PROJECTS'} />
+  <section class="content-section"><div class="page-shell"><ProjectArchive locale={locale} /></div></section>
+</BaseLayout>

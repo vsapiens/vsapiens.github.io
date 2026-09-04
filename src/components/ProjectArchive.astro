@@ -1,0 +1,24 @@
+---
+import { getLocalizedProjects } from '../data/content';
+import type { Locale, ProjectStatus } from '../data/site';
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const projects = getLocalizedProjects(locale);
+const status: Record<Locale, Record<ProjectStatus, string>> = {
+  en: { live: 'Live', beta: 'Beta', building: 'Building', shipped: 'Shipped', oss: 'Open source', archived: 'Archived' },
+  es: { live: 'Público', beta: 'Beta', building: 'En desarrollo', shipped: 'Entregado', oss: 'Código abierto', archived: 'Archivado' },
+};
+const labels = locale === 'es' ? { live: 'Abrir sitio', source: 'Ver código', private: 'Repositorio privado' } : { live: 'Open site', source: 'View source', private: 'Private repository' };
+---
+
+<div class="project-archive-grid">
+  {projects.map((project, index) => (
+    <article class="project-archive-card">
+      <div class="project-archive-meta"><span>{String(index + 1).padStart(2, '0')}</span><span>{project.category}</span><span>{project.year}</span></div>
+      <h2>{project.name}</h2><p class="project-tagline">{project.tagline}</p><p>{project.description}</p>
+      <div class="tag-list">{project.tech.slice(0, 5).map((tech) => <span>{tech}</span>)}</div>
+      <footer><span class:list={['archive-status', `status-${project.status}`]}>{status[locale][project.status]}</span><div>{project.links.repo && <a href={project.links.repo} target="_blank" rel="noopener noreferrer">{labels.source} ↗</a>}{project.links.live && <a href={project.links.live} target="_blank" rel="noopener noreferrer">{labels.live} ↗</a>}{project.private && !project.links.live && !project.links.repo && <span>{labels.private}</span>}</div></footer>
+    </article>
+  ))}
+</div>

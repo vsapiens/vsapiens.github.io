@@ -1,0 +1,111 @@
+---
+import { getCollection } from 'astro:content';
+import { marketing, getCaseStudies } from '../data/content';
+import { evidenceMetrics, type Locale } from '../data/site';
+import { getLocalizedPath } from '../lib/quote';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CaseStudyCard from './CaseStudyCard.astro';
+import ExperienceTimeline from './ExperienceTimeline.astro';
+import { MethodAccordion } from './MethodAccordion';
+import SectionHeading from './SectionHeading.astro';
+import ServicesGrid from './ServicesGrid.astro';
+import { SystemsMap } from './islands/SystemsMap';
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const copy = marketing[locale];
+const [title, description] = copy.meta.home;
+const cases = getCaseStudies(locale);
+const posts = (await getCollection('blog'))
+  .filter((post) => !post.data.draft && (locale === 'es' ? post.id.startsWith('es/') : !post.id.startsWith('es/')))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 3);
+---
+
+<BaseLayout title={title} description={description} locale={locale}>
+  <section class="home-hero atlas-grid-bg">
+    <div class="page-shell hero-layout">
+      <div class="hero-copy">
+        <p class="hero-kicker">{copy.home.kicker}</p>
+        <h1>{copy.home.title}</h1>
+        <p class="hero-intro">{copy.home.intro}</p>
+        <div class="hero-actions">
+          <a class="button-link button-primary" href={getLocalizedPath('/work', locale)}>{copy.home.primary}</a>
+          <a class="button-link button-secondary" href={getLocalizedPath('/resume', locale)}>{copy.home.secondary}</a>
+        </div>
+        <p class="availability"><span></span>{copy.home.availability}</p>
+      </div>
+      <div class="hero-plate" aria-hidden="true">
+        <svg viewBox="0 0 520 520" role="img">
+          <circle cx="260" cy="260" r="195" class="plate-orbit" />
+          <path d="M62 316C160 98 346 80 454 252S364 472 196 432 92 236 290 178 468 292 350 366" class="plate-path" />
+          <path d="M95 178L420 388M112 406L403 128" class="plate-cross" />
+          <circle cx="95" cy="178" r="15" class="plate-node node-blue" /><circle cx="420" cy="388" r="20" class="plate-node node-coral" /><circle cx="403" cy="128" r="12" class="plate-node node-violet" /><circle cx="260" cy="260" r="76" class="plate-core" />
+          <text x="260" y="250" text-anchor="middle">SYSTEMS</text><text x="260" y="279" text-anchor="middle">ATLAS</text>
+        </svg>
+        <p>RPS / P99 / CONTRACTS / REVIEW</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section map-section">
+    <div class="page-shell">
+      <SectionHeading label={copy.labels.method} title={copy.home.mapTitle} intro={copy.home.mapIntro} />
+      <SystemsMap locale={locale} client:visible />
+    </div>
+  </section>
+
+  <section class="evidence-section">
+    <div class="page-shell">
+      <SectionHeading label={copy.labels.evidence} title={copy.home.evidenceTitle} intro={copy.home.evidenceIntro} />
+      <div class="evidence-rail">
+        {evidenceMetrics.map((metric) => <article><strong>{metric.value}</strong><h3>{metric.label[locale]}</h3><p>{metric.context[locale]}</p></article>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section" id="selected">
+    <div class="page-shell">
+      <SectionHeading label={copy.labels.selected} title={copy.home.workTitle} intro={copy.home.workIntro} />
+      <div class="case-grid">{cases.map((study, index) => <CaseStudyCard study={study} locale={locale} index={index} />)}</div>
+      <a class="button-link button-secondary section-action" href={getLocalizedPath('/work', locale)}>{copy.home.closingAlt}</a>
+    </div>
+  </section>
+
+  <section class="content-section method-section">
+    <div class="page-shell method-layout">
+      <SectionHeading label={copy.labels.method} title={copy.home.methodTitle} intro={copy.home.methodIntro} />
+      <MethodAccordion locale={locale} client:visible />
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="page-shell">
+      <SectionHeading label={copy.labels.services} title={copy.home.servicesTitle} intro={copy.home.servicesIntro} />
+      <ServicesGrid locale={locale} compact />
+      <a class="text-link section-action" href={getLocalizedPath('/services', locale)}>{locale === 'es' ? 'Ver servicios y precios' : 'View services and pricing'}<span aria-hidden="true">↗</span></a>
+    </div>
+  </section>
+
+  <section class="content-section experience-section-home">
+    <div class="page-shell">
+      <SectionHeading label={copy.labels.experience} title={copy.home.experienceTitle} intro={copy.home.experienceIntro} />
+      <ExperienceTimeline locale={locale} limit={3} />
+      <a class="text-link section-action" href={getLocalizedPath('/experience', locale)}>{locale === 'es' ? 'Ver experiencia completa' : 'View complete experience'}<span aria-hidden="true">↗</span></a>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="page-shell">
+      <SectionHeading label={copy.labels.writing} title={copy.home.writingTitle} intro={copy.home.writingIntro} />
+      <div class="writing-list">
+        {posts.map((post) => <article><time>{post.data.date.toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</time><h3><a href={getLocalizedPath(`/blog/${post.id.replace(/^es\//, '')}`, locale)}>{post.data.title}</a></h3><p>{post.data.description}</p></article>)}
+      </div>
+      <a class="text-link section-action" href={getLocalizedPath('/blog', locale)}>{copy.blog.all}<span aria-hidden="true">↗</span></a>
+    </div>
+  </section>
+
+  <section class="closing-section">
+    <div class="page-shell closing-grid"><h2>{copy.home.closingTitle}</h2><div><p>{copy.home.closingBody}</p><div class="hero-actions"><a class="button-link button-signal" href={getLocalizedPath('/contact', locale)}>{copy.home.closingCta}</a><a class="button-link button-on-dark" href={getLocalizedPath('/work', locale)}>{copy.home.closingAlt}</a></div></div></div>
+  </section>
+</BaseLayout>

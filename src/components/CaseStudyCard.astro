@@ -1,0 +1,20 @@
+---
+import type { LocalizedCaseStudy } from '../data/content';
+import type { Locale } from '../data/site';
+import { getLocalizedPath } from '../lib/quote';
+
+interface Props { study: LocalizedCaseStudy; locale: Locale; index?: number; }
+const { study, locale, index = 0 } = Astro.props;
+const read = locale === 'es' ? 'Leer caso de estudio' : 'Read case study';
+---
+
+<article class="case-card">
+  <div class="case-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</div>
+  <div class="case-card-body">
+    <div class="case-card-topline"><span class="status-dot"></span><span>{study.status}</span></div>
+    <h3><a href={getLocalizedPath(`/work/${study.slug}`, locale)}>{study.title}</a></h3>
+    <p>{study.summary}</p>
+    <ul class="tag-list" aria-label={locale === 'es' ? 'Tecnologías' : 'Technologies'}>{study.tags.map((tag) => <li>{tag}</li>)}</ul>
+    <a class="text-link" href={getLocalizedPath(`/work/${study.slug}`, locale)}>{read}<span aria-hidden="true">↗</span></a>
+  </div>
+</article>

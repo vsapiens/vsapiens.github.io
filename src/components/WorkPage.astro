@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from './PageHero.astro';
+import CaseStudyCard from './CaseStudyCard.astro';
+import { getCaseStudies, marketing } from '../data/content';
+import type { Locale } from '../data/site';
+import { getLocalizedPath } from '../lib/quote';
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const copy = marketing[locale];
+const cases = getCaseStudies(locale);
+---
+
+<BaseLayout title={copy.meta.work[0]} description={copy.meta.work[1]} locale={locale}>
+  <PageHero title={copy.work.title} intro={copy.work.intro} marker={locale === 'es' ? 'ATLAS / TRABAJO' : 'ATLAS / WORK'} />
+  <section class="content-section"><div class="page-shell"><div class="case-grid">{cases.map((study, index) => <CaseStudyCard study={study} locale={locale} index={index} />)}</div></div></section>
+  <section class="archive-callout"><div class="page-shell"><div><p class="section-label">{copy.labels.archive}</p><h2>{copy.work.archiveTitle}</h2><p>{copy.work.archiveIntro}</p></div><a class="button-link button-primary" href={getLocalizedPath('/projects', locale)}>{copy.labels.archive}</a></div></section>
+</BaseLayout>

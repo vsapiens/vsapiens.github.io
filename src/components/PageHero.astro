@@ -1,0 +1,12 @@
+---
+interface Props { title: string; intro: string; marker?: string; }
+const { title, intro, marker = 'FIELD NOTE' } = Astro.props;
+---
+
+<section class="page-hero atlas-grid-bg">
+  <div class="page-shell page-hero-grid">
+    <p class="page-marker">{marker}</p>
+    <h1>{title}</h1>
+    <p class="page-hero-intro">{intro}</p>
+  </div>
+</section>

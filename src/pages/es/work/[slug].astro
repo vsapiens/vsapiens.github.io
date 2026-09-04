@@ -1,0 +1,8 @@
+---
+import CaseStudyPage from '../../../components/CaseStudyPage.astro';
+import { featuredCaseStudies } from '../../../data/site';
+import { getCaseStudy } from '../../../data/content';
+export function getStaticPaths() { return featuredCaseStudies.map(({ slug }) => ({ params: { slug }, props: { study: getCaseStudy(slug, 'es')! } })); }
+const { study } = Astro.props;
+---
+<CaseStudyPage locale="es" study={study} />

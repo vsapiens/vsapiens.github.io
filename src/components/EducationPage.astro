@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from './PageHero.astro';
+import { marketing } from '../data/content';
+import education from '../data/education.json';
+import certifications from '../data/certifications.json';
+import type { Locale } from '../data/site';
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const copy = marketing[locale];
+---
+<BaseLayout title={copy.meta.education[0]} description={copy.meta.education[1]} locale={locale}>
+  <PageHero title={copy.education.title} intro={copy.education.intro} marker={locale === 'es' ? 'BASES / EDUCACIÓN' : 'FOUNDATIONS / EDUCATION'} />
+  <section class="content-section"><div class="page-shell education-grid">{education.map((item, index) => <article><span class="education-index">{String(index + 1).padStart(2, '0')}</span><h2>{locale === 'es' ? (index === 0 ? copy.education.degree : copy.education.exchange) : item.degree}</h2><h3>{item.institution}</h3><time>{item.year}</time><p>{item.description}</p></article>)}</div></section>
+  <section class="content-section certification-section"><div class="page-shell"><h2>{copy.education.certifications}</h2>{certifications.length === 0 && <p>{copy.education.none}</p>}</div></section>
+</BaseLayout>

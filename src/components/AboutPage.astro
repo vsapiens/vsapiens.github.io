@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from './PageHero.astro';
+import SectionHeading from './SectionHeading.astro';
+import { MethodAccordion } from './MethodAccordion';
+import { marketing } from '../data/content';
+import type { Locale } from '../data/site';
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const copy = marketing[locale];
+---
+<BaseLayout title={copy.meta.about[0]} description={copy.meta.about[1]} locale={locale}>
+  <PageHero title={copy.about.title} intro={copy.about.intro} marker={locale === 'es' ? 'ATLAS / PERFIL' : 'ATLAS / PROFILE'} />
+  <section class="content-section"><div class="page-shell about-grid"><section><SectionHeading title={copy.about.principlesTitle} /><ol class="principle-list">{copy.about.principles.map((item, index) => <li><span>{String(index + 1).padStart(2, '0')}</span><p>{item}</p></li>)}</ol></section><aside class="focus-panel"><p class="section-label">{copy.about.beyondTitle}</p><p>{copy.about.beyond}</p><div class="focus-orbit" aria-hidden="true"><span></span><span></span><span></span></div></aside></div></section>
+  <section class="content-section method-section"><div class="page-shell method-layout"><SectionHeading label={copy.labels.method} title={copy.home.methodTitle} intro={copy.home.methodIntro} /><MethodAccordion locale={locale} client:visible /></div></section>
+</BaseLayout>

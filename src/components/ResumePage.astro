@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from './PageHero.astro';
+import { marketing } from '../data/content';
+import type { Locale } from '../data/site';
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const copy = marketing[locale];
+---
+<BaseLayout title={copy.meta.resume[0]} description={copy.meta.resume[1]} locale={locale}>
+  <PageHero title={copy.resume.title} intro={copy.resume.intro} marker={locale === 'es' ? 'DOCUMENTO / PDF' : 'DOCUMENT / PDF'} />
+  <section class="content-section"><div class="page-shell resume-actions"><a class="button-link button-primary" href="/resume.pdf" download>{copy.resume.download}</a><p>{copy.resume.fallback}</p></div><div class="page-shell resume-viewer"><object data="/resume.pdf" type="application/pdf"><div><p>{copy.resume.fallback}</p><a href="/resume.pdf" download>{copy.resume.download}</a></div></object></div></section>
+</BaseLayout>

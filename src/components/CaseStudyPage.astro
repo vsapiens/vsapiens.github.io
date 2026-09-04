@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { marketing, type LocalizedCaseStudy } from '../data/content';
+import type { Locale } from '../data/site';
+import { getLocalizedPath } from '../lib/quote';
+
+interface Props { locale: Locale; study: LocalizedCaseStudy; }
+const { locale, study } = Astro.props;
+const copy = marketing[locale];
+const isExternal = (href: string) => /^https?:/.test(href);
+---
+
+<BaseLayout title={study.title} description={study.summary} locale={locale}>
+  <article class="case-study-page">
+    <header class="case-study-hero atlas-grid-bg"><div class="page-shell"><a class="back-link" href={getLocalizedPath('/work', locale)}>← {copy.meta.work[0]}</a><p class="case-study-status"><span></span>{study.status}</p><h1>{study.title}</h1><p class="case-study-summary">{study.summary}</p><div class="tag-list">{study.tags.map((tag) => <span>{tag}</span>)}</div></div></header>
+    <div class="page-shell case-study-body">
+      <section><p class="section-label">{copy.labels.constraint}</p><h2>{locale === 'es' ? 'La condición operativa' : 'The operating condition'}</h2><p>{study.constraint}</p></section>
+      <section><p class="section-label">{copy.labels.approach}</p><h2>{locale === 'es' ? 'Cómo se estructuró el trabajo' : 'How the work was structured'}</h2><p>{study.approach}</p></section>
+      <section class="case-evidence"><p class="section-label">{copy.labels.evidenceFound}</p><h2>{locale === 'es' ? 'Lo que puede inspeccionarse' : 'What can be inspected'}</h2><ul>{study.evidence.map((item) => <li>{item}</li>)}</ul></section>
+      <aside class="qualification-note"><strong>{locale === 'es' ? 'Límite de la afirmación' : 'Claim boundary'}</strong><p>{study.note}</p></aside>
+      {study.links.length > 0 && <section><p class="section-label">{copy.labels.links}</p><div class="case-links">{study.links.map((link) => <a class="button-link button-secondary" href={link.href} target={isExternal(link.href) ? '_blank' : undefined} rel={isExternal(link.href) ? 'noopener noreferrer' : undefined}>{link.label}<span aria-hidden="true">↗</span></a>)}</div></section>}
+    </div>
+  </article>
+</BaseLayout>
