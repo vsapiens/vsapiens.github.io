@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 
 interface DialogProps {
@@ -6,11 +7,14 @@ interface DialogProps {
   onOpenChange: (open: boolean) => void;
   title: string;
   description?: string;
+  closeLabel?: string;
   children: ReactNode;
   className?: string;
 }
 
-export function Dialog({ open, onOpenChange, title, description, children, className }: DialogProps) {
+const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+export function Dialog({ open, onOpenChange, title, description, closeLabel = 'Close', children, className }: DialogProps) {
   const titleId = useId();
   const descriptionId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -19,7 +23,30 @@ export function Dialog({ open, onOpenChange, title, description, children, class
     if (!open) return;
     const previousFocus = document.activeElement as HTMLElement | null;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onOpenChange(false);
+      if (event.key === 'Escape') {
+        onOpenChange(false);
+        return;
+      }
+      if (event.key !== 'Tab' || !panelRef.current) return;
+
+      const panel = panelRef.current;
+      const focusable = Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector));
+      const first = focusable[0];
+      const last = focusable.at(-1);
+
+      if (!first || !last) {
+        event.preventDefault();
+        panel.focus();
+      } else if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      } else if (!panel.contains(document.activeElement)) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', onKeyDown);
     panelRef.current?.focus();
@@ -31,12 +58,11 @@ export function Dialog({ open, onOpenChange, title, description, children, class
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[70] grid place-items-center p-4" data-ui="dialog">
-      <button
-        type="button"
+      <div
         className="absolute inset-0 cursor-default bg-ink/55 backdrop-blur-sm"
-        aria-label="Close dialog"
+        aria-hidden="true"
         onClick={() => onOpenChange(false)}
       />
       <div
@@ -53,12 +79,13 @@ export function Dialog({ open, onOpenChange, title, description, children, class
             <h2 id={titleId} className="text-2xl font-semibold tracking-[-0.03em] text-ink">{title}</h2>
             {description && <p id={descriptionId} className="mt-2 text-sm leading-6 text-muted-ink">{description}</p>}
           </div>
-          <button type="button" className="grid size-10 shrink-0 place-items-center border border-grid-line text-xl text-ink hover:border-technical-blue" onClick={() => onOpenChange(false)} aria-label="Close">
+          <button type="button" className="grid size-10 shrink-0 place-items-center border border-grid-line text-xl text-ink hover:border-technical-blue" onClick={() => onOpenChange(false)} aria-label={closeLabel}>
             ×
           </button>
         </div>
         <div className="mt-6">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

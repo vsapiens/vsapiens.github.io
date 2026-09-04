@@ -23,6 +23,13 @@ test('returns a localized case study while preserving its factual status qualifi
   expect(getCaseStudy('vitrina', 'en')?.status).toBe('Public site available; production WhatsApp channel paused');
 });
 
+test('localizes Spanish case-study link labels and article destinations', () => {
+  expect(getCaseStudy('vitrina', 'es')?.links).toEqual([
+    { label: 'Sitio público de Vitrina', href: 'https://vitrinamx.mx', kind: 'live' },
+    { label: 'Artículo sobre cero node_modules', href: '/es/blog/shipping-a-saas-with-zero-node-modules', kind: 'article' },
+  ]);
+});
+
 test('returns undefined for a case-study slug that is not published', () => {
   expect(getCaseStudy('not-a-story', 'en')).toBeUndefined();
 });

@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { marketing, getCaseStudies } from '../data/content';
 import { evidenceMetrics, type Locale } from '../data/site';
 import { getLocalizedPath } from '../lib/quote';
+import { formatPublicationDate } from '../lib/utils';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CaseStudyCard from './CaseStudyCard.astro';
 import ExperienceTimeline from './ExperienceTimeline.astro';
@@ -99,7 +100,7 @@ const posts = (await getCollection('blog'))
     <div class="page-shell">
       <SectionHeading label={copy.labels.writing} title={copy.home.writingTitle} intro={copy.home.writingIntro} />
       <div class="writing-list">
-        {posts.map((post) => <article><time>{post.data.date.toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</time><h3><a href={getLocalizedPath(`/blog/${post.id.replace(/^es\//, '')}`, locale)}>{post.data.title}</a></h3><p>{post.data.description}</p></article>)}
+        {posts.map((post) => <article><time>{formatPublicationDate(post.data.date, locale, 'short')}</time><h3><a href={getLocalizedPath(`/blog/${post.id.replace(/^es\//, '')}`, locale)}>{post.data.title}</a></h3><p>{post.data.description}</p></article>)}
       </div>
       <a class="text-link section-action" href={getLocalizedPath('/blog', locale)}>{copy.blog.all}<span aria-hidden="true">↗</span></a>
     </div>

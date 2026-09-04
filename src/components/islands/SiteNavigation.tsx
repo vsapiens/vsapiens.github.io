@@ -4,8 +4,8 @@ import { getLocalizedPath } from '@/lib/quote';
 import { Sheet } from '@/components/ui/sheet';
 
 const copy = {
-  en: { home: 'Home', open: 'Open navigation', title: 'Site navigation', language: 'Español', languageName: 'Spanish', consult: 'Discuss a project' },
-  es: { home: 'Inicio', open: 'Abrir navegación', title: 'Navegación del sitio', language: 'English', languageName: 'English', consult: 'Conversemos' },
+  en: { home: 'Home', open: 'Open navigation', close: 'Close', title: 'Site navigation', language: 'Español', languageName: 'Spanish', consult: 'Discuss a project' },
+  es: { home: 'Inicio', open: 'Abrir navegación', close: 'Cerrar', title: 'Navegación del sitio', language: 'English', languageName: 'English', consult: 'Conversemos' },
 } as const;
 
 export function SiteNavigation({ locale, currentPath }: { locale: Locale; currentPath: string }) {
@@ -18,7 +18,8 @@ export function SiteNavigation({ locale, currentPath }: { locale: Locale; curren
   const links = (mobile = false) => (
     <>
       {items.map((item) => {
-        const active = currentPath === item.localizedHref || (item.id === 'writing' && currentPath.startsWith(item.localizedHref + '/'));
+        const active = currentPath === item.localizedHref
+          || ((item.id === 'writing' || item.id === 'work') && currentPath.startsWith(`${item.localizedHref}/`));
         return <a key={item.id} href={item.localizedHref} aria-current={active ? 'page' : undefined} onClick={mobile ? () => setOpen(false) : undefined} className="nav-link">{item.label[locale]}</a>;
       })}
     </>
@@ -34,7 +35,7 @@ export function SiteNavigation({ locale, currentPath }: { locale: Locale; curren
         <div className="nav-desktop">{links()}<a className="nav-locale" href={localeHref} aria-label={t.languageName}>{t.language}</a><a className="nav-cta" href={getLocalizedPath('/contact', locale)}>{t.consult}</a></div>
         <button type="button" className="nav-menu-button" aria-label={t.open} aria-expanded={open} onClick={() => setOpen(true)}><span /><span /></button>
       </nav>
-      <Sheet open={open} onOpenChange={setOpen} title={t.title}>
+      <Sheet open={open} onOpenChange={setOpen} title={t.title} closeLabel={t.close}>
         <div className="sheet-links">{links(true)}<a className="nav-locale" href={localeHref}>{t.language}</a><a className="nav-cta" href={getLocalizedPath('/contact', locale)}>{t.consult}</a></div>
       </Sheet>
     </header>

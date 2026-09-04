@@ -145,11 +145,24 @@ const caseDetails: Record<CaseStudy['slug'], Omit<LocalizedCaseStudy, 'title' | 
   },
 };
 
+const spanishCaseLinkLabels: Record<string, string> = {
+  'Load testing at 100k RPS': 'Pruebas de carga a 100k RPS',
+  'Vitrina public site': 'Sitio público de Vitrina',
+  'Zero node_modules article': 'Artículo sobre cero node_modules',
+  'AgentOS beta preview': 'Preview beta de AgentOS',
+  'Architecture article': 'Artículo de arquitectura',
+  'Product site': 'Sitio del producto',
+  'mx-market-tools source': 'Código de mx-market-tools',
+  'k6gen source': 'Código de k6gen',
+  'Observability stack source': 'Código del stack de observabilidad',
+  'Load-generation article': 'Artículo sobre generación de carga',
+};
+
 export function getCaseStudy(slug: string, locale: Locale): LocalizedCaseStudy | undefined {
   const base = featuredCaseStudies.find((item) => item.slug === slug);
   if (!base) return undefined;
   const detail = caseDetails[base.slug];
-  if (locale === 'es') return { slug: base.slug, tags: base.tags, links: detail.links.map((link) => ({ ...link, href: link.href.startsWith('/blog/') ? `/es${link.href}` : link.href })), ...detail.es };
+  if (locale === 'es') return { slug: base.slug, tags: base.tags, links: detail.links.map((link) => ({ ...link, label: spanishCaseLinkLabels[link.label] ?? link.label, href: link.href.startsWith('/blog/') ? `/es${link.href}` : link.href })), ...detail.es };
   return { slug: base.slug, title: base.title.en, summary: base.summary.en, status: base.status.en, tags: base.tags, constraint: detail.constraint, approach: detail.approach, evidence: detail.evidence, note: detail.note, links: detail.links };
 }
 
@@ -217,4 +230,3 @@ export const methodSteps = {
     { id: 'authorization', title: 'Autorización humana', body: 'Una persona aprueba producción, OAuth, credenciales, pagos, merges y acciones irreversibles. El flujo acelera el juicio; no lo delega.' },
   ],
 } as const;
-

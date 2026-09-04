@@ -33,3 +33,9 @@ test('shows dependency annotations on request and opens node detail in a dialog'
   await user.keyboard('{Escape}');
   expect(screen.queryByRole('dialog', { name: 'Verification' })).toBeNull();
 });
+
+test('uses a fully localized accessible name for Spanish node detail', () => {
+  render(<SystemsMap locale="es" />);
+
+  expect(screen.getByRole('button', { name: 'Abrir Dirección humana detalle' })).toBeTruthy();
+});

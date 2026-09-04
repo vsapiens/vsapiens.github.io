@@ -26,3 +26,18 @@ test('keeps Spanish navigation and locale switching on Spanish routes', () => {
   expect(screen.getByRole('link', { name: 'Trabajo' }).getAttribute('aria-current')).toBe('page');
   expect(screen.getByRole('link', { name: 'English' }).getAttribute('href')).toBe('/work');
 });
+
+test('localizes the mobile navigation dialog controls', async () => {
+  const user = userEvent.setup();
+  render(<SiteNavigation locale="es" currentPath="/es" />);
+
+  await user.click(screen.getByRole('button', { name: 'Abrir navegación' }));
+
+  expect(screen.getByRole('button', { name: 'Cerrar' })).toBeTruthy();
+});
+
+test('keeps the work section current on case-study routes', () => {
+  render(<SiteNavigation locale="en" currentPath="/work/vitrina" />);
+
+  expect(screen.getByRole('link', { name: 'Work' }).getAttribute('aria-current')).toBe('page');
+});

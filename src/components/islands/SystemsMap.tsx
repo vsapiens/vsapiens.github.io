@@ -111,11 +111,11 @@ export function SystemsMap({ locale }: { locale: Locale }) {
         <div className="map-progress">
           <span className="font-mono text-xs text-muted-ink">{selectedNode.step}/5</span>
           <Progress value={selectedNode.step * 20} label={`${t.nodeNames[selected]} ${t.position}`} />
-          <Button variant="secondary" onClick={() => setDialogOpen(true)} aria-label={`${t.open} ${t.nodeNames[selected]} detail`}>{locale === 'es' ? 'Ver detalle' : 'Open detail'}</Button>
+          <Button variant="secondary" onClick={() => setDialogOpen(true)} aria-label={`${t.open} ${t.nodeNames[selected]} ${locale === 'es' ? 'detalle' : 'detail'}`}>{locale === 'es' ? 'Ver detalle' : 'Open detail'}</Button>
         </div>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen} title={t.nodeNames[selected]} description={t.dialogIntro}>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen} title={t.nodeNames[selected]} description={t.dialogIntro} closeLabel={locale === 'es' ? 'Cerrar' : 'Close'}>
         <p className="leading-7 text-muted-ink">{t.detail[selected]}</p>
       </Dialog>
     </div>

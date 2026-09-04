@@ -5,6 +5,7 @@ import PageHero from './PageHero.astro';
 import { marketing } from '../data/content';
 import type { Locale } from '../data/site';
 import { getLocalizedPath } from '../lib/quote';
+import { formatPublicationDate } from '../lib/utils';
 interface Props { locale: Locale; }
 const { locale } = Astro.props;
 const copy = marketing[locale];
@@ -12,7 +13,7 @@ const posts = (await getCollection('blog')).filter((post) => !post.data.draft &&
 const entries = posts.map((post) => ({
   title: post.data.title,
   description: post.data.description,
-  date: post.data.date.toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+  date: formatPublicationDate(post.data.date, locale),
   readTime: Math.ceil((post.body?.split(/\s+/).length ?? 0) / 200),
   href: getLocalizedPath(`/blog/${post.id.replace(/^es\//, '')}`, locale),
   tags: post.data.tags,

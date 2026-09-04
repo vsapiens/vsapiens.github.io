@@ -37,12 +37,12 @@ Expired demos don't get deleted, either. They go into a cold archive and can be 
 
 Here's the part indie-hacking write-ups usually skip.
 
-The whole funnel runs on the WhatsApp Cloud API. In July, Meta permanently disabled Vitrina's production WhatsApp Business account. The appeal was rejected. There was no bug, no violation I could point to and fix — the channel the entire product depends on simply went dark.
+The whole funnel was designed around the WhatsApp Cloud API. In July, Meta disabled Vitrina's production WhatsApp Business account and rejected the appeal. The production channel is paused; the public site remains available.
 
-That is the risk of building on someone else's platform, and no amount of clean architecture protects you from it. The zero-dependency backend still boots. The 178 test suites still pass. `vitrinamx.mx` still serves. But the front door — the thing that made it magic, a business getting a website from a text message — is the one piece I don't control.
+That is the risk of building on someone else's platform, and no amount of clean architecture protects you from it. The zero-dependency backend still boots and `vitrinamx.mx` still serves. But the front door — the thing that made it magic, a business getting a website from a text message — is the one piece I don't control.
 
 ## What I'd tell myself
 
 Build the core so you can trust it completely. Then assume the platform layer on top can be taken away without warning, and design the day-one plan for getting it back. I did the first part well. I'm still learning the second.
 
-Vitrina is in public beta while I work the channel problem. The engineering underneath it is some of the work I'm proudest of.
+Vitrina's public site remains available while I work on the paused production WhatsApp channel. The engineering underneath it is some of the work I'm proudest of.
