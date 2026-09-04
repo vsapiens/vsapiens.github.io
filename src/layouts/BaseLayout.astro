@@ -11,17 +11,19 @@ interface Props {
   locale?: Locale;
   image?: string;
   type?: string;
+  localized?: boolean;
+  noIndex?: boolean;
 }
 
-const { title, description, locale = 'en', image, type } = Astro.props;
+const { title, description, locale = 'en', image, type, localized = true, noIndex = false } = Astro.props;
 ---
 
 <!doctype html>
 <html lang={locale === 'es' ? 'es-MX' : 'en'}>
-  <head><SEO title={title} description={description} image={image} type={type} /></head>
+  <head><SEO title={title} description={description} locale={locale} image={image} type={type} localized={localized} noIndex={noIndex} /></head>
   <body>
     <a class="skip-link" href="#main-content">{locale === 'es' ? 'Saltar al contenido' : 'Skip to content'}</a>
-    <Navbar locale={locale} />
+    <Navbar locale={locale} localized={localized} />
     <main id="main-content"><slot /></main>
     <Footer locale={locale} />
   </body>

@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page not found / Página no encontrada" description="The requested Systems Atlas route does not exist. La ruta solicitada no existe." localized={false} noIndex>
+  <section class="not-found atlas-grid-bg">
+    <div class="page-shell not-found-grid">
+      <p class="page-marker">ERROR / 404</p>
+      <div>
+        <h1>Signal lost.<br /><span>Señal perdida.</span></h1>
+        <p>The requested node is outside this atlas. La ruta solicitada está fuera de este atlas.</p>
+        <div class="hero-actions">
+          <a class="button-link button-primary" href="/">Go to English home</a>
+          <a class="button-link button-secondary" href="/es">Ir al inicio en español</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

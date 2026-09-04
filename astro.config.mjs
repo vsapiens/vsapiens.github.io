@@ -1,11 +1,13 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
   site: 'https://vsapiens.github.io',
-  integrations: [react()],
+  trailingSlash: 'never',
+  integrations: [react(), sitemap({ filter: (page) => !page.endsWith('/404') && !page.endsWith('.xml') })],
   vite: {
     plugins: [tailwindcss()],
     resolve: {

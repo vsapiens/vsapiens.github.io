@@ -1,22 +1,75 @@
 ---
+import { contact, services, type Locale } from '../data/site';
+
 interface Props {
   title: string;
   description: string;
+  locale?: Locale;
   image?: string;
   type?: string;
+  localized?: boolean;
+  noIndex?: boolean;
 }
 
 const {
   title,
   description,
+  locale = 'en',
   image = '/og-default.png',
   type = 'website',
+  localized = true,
+  noIndex = false,
 } = Astro.props;
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const fullTitle = title === 'Home'
-  ? 'Erick González — Lead Performance Engineer | Backend Dev | AI Builder'
+const normalizePath = (path: string) => path === '/' ? '/' : path.replace(/\/$/, '');
+const currentPath = normalizePath(Astro.url.pathname);
+const englishPath = currentPath === '/es' ? '/' : currentPath.replace(/^\/es(?=\/)/, '') || '/';
+const spanishPath = englishPath === '/' ? '/es' : `/es${englishPath}`;
+const canonicalURL = new URL(locale === 'es' ? spanishPath : englishPath, Astro.site);
+const englishURL = new URL(englishPath, Astro.site);
+const spanishURL = new URL(spanishPath, Astro.site);
+const fullTitle = title === 'Systems Atlas' || title === 'Atlas de sistemas'
+  ? (locale === 'es' ? 'Erick González — Rendimiento, backend y entrega con IA' : 'Erick González — Performance, backend, and AI delivery')
   : `${title} — Erick González`;
+const imageURL = new URL(image, Astro.site);
+const schema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': new URL('/#person', Astro.site).href,
+      name: 'Erick González',
+      url: new URL('/', Astro.site).href,
+      email: `mailto:${contact.email}`,
+      jobTitle: locale === 'es' ? 'Lead Performance Engineer y constructor de productos' : 'Lead Performance Engineer and product builder',
+      sameAs: [contact.github, contact.linkedin],
+    },
+    {
+      '@type': 'ProfessionalService',
+      '@id': new URL('/#professional-service', Astro.site).href,
+      name: locale === 'es' ? 'Servicios de ingeniería de Erick González' : 'Erick González Engineering Services',
+      url: new URL(locale === 'es' ? '/es/services' : '/services', Astro.site).href,
+      provider: { '@id': new URL('/#person', Astro.site).href },
+      availableLanguage: ['English', 'Spanish'],
+      offers: services.flatMap((service) => [
+        {
+          '@type': 'Offer',
+          name: service.name[locale],
+          url: new URL(`${locale === 'es' ? '/es/services' : '/services'}#${service.id}`, Astro.site).href,
+          price: service.price.usd,
+          priceCurrency: 'USD',
+        },
+        {
+          '@type': 'Offer',
+          name: service.name[locale],
+          url: new URL(`${locale === 'es' ? '/es/services' : '/services'}#${service.id}`, Astro.site).href,
+          price: service.price.mxn,
+          priceCurrency: 'MXN',
+        },
+      ]),
+    },
+  ],
+};
 ---
 
 <meta charset="utf-8" />
@@ -24,17 +77,31 @@ const fullTitle = title === 'Home'
 <meta name="generator" content={Astro.generator} />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="canonical" href={canonicalURL} />
+{localized && <>
+  <link rel="alternate" hreflang="en" href={englishURL} />
+  <link rel="alternate" hreflang="es-MX" href={spanishURL} />
+  <link rel="alternate" hreflang="x-default" href={englishURL} />
+</>}
+<link rel="alternate" type="application/rss+xml" title={locale === 'es' ? 'Escritura de Erick González' : 'Erick González writing'} href={new URL(locale === 'es' ? '/es/rss.xml' : '/rss.xml', Astro.site)} />
 
 <title>{fullTitle}</title>
 <meta name="description" content={description} />
+<meta name="robots" content={noIndex ? 'noindex, follow' : 'index, follow'} />
+<meta name="theme-color" content="#F7F9FC" />
 
 <meta property="og:type" content={type} />
 <meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={fullTitle} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(image, Astro.site)} />
+<meta property="og:image" content={imageURL} />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:locale" content={locale === 'es' ? 'es_MX' : 'en_US'} />
+<meta property="og:locale:alternate" content={locale === 'es' ? 'en_US' : 'es_MX'} />
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={fullTitle} />
 <meta name="twitter:description" content={description} />
-<meta name="twitter:image" content={new URL(image, Astro.site)} />
+<meta name="twitter:image" content={imageURL} />
+<script type="application/ld+json" set:html={JSON.stringify(schema)} is:inline />

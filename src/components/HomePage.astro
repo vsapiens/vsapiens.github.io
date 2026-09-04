@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import { marketing, getCaseStudies } from '../data/content';
 import { evidenceMetrics, type Locale } from '../data/site';
-import { getLocalizedPath } from '../lib/quote';
+import { createWhatsAppUrl, getLocalizedPath } from '../lib/quote';
 import { formatPublicationDate } from '../lib/utils';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CaseStudyCard from './CaseStudyCard.astro';
@@ -21,6 +21,9 @@ const posts = (await getCollection('blog'))
   .filter((post) => !post.data.draft && (locale === 'es' ? post.id.startsWith('es/') : !post.id.startsWith('es/')))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
   .slice(0, 3);
+const whatsappIntro = locale === 'es'
+  ? 'Hola Erick, quiero conversar sobre un proyecto de ingeniería.'
+  : 'Hi Erick, I would like to discuss an engineering project.';
 ---
 
 <BaseLayout title={title} description={description} locale={locale}>
@@ -107,6 +110,6 @@ const posts = (await getCollection('blog'))
   </section>
 
   <section class="closing-section">
-    <div class="page-shell closing-grid"><h2>{copy.home.closingTitle}</h2><div><p>{copy.home.closingBody}</p><div class="hero-actions"><a class="button-link button-signal" href={getLocalizedPath('/contact', locale)}>{copy.home.closingCta}</a><a class="button-link button-on-dark" href={getLocalizedPath('/work', locale)}>{copy.home.closingAlt}</a></div></div></div>
+    <div class="page-shell closing-grid"><h2>{copy.home.closingTitle}</h2><div><p>{copy.home.closingBody}</p><div class="hero-actions"><a class="button-link button-signal" href={createWhatsAppUrl(whatsappIntro)} target="_blank" rel="noopener noreferrer">{locale === 'es' ? 'Escribir por WhatsApp' : 'Message on WhatsApp'}<span aria-hidden="true">↗</span></a><a class="button-link button-on-dark" href={`${getLocalizedPath('/contact', locale)}#quote`}>{copy.home.closingCta}</a></div></div></div>
   </section>
 </BaseLayout>

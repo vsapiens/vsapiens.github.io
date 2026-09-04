@@ -4,12 +4,15 @@ import PageHero from './PageHero.astro';
 import ServicesGrid from './ServicesGrid.astro';
 import { marketing } from '../data/content';
 import type { Locale } from '../data/site';
-import { getLocalizedPath } from '../lib/quote';
+import { createWhatsAppUrl, getLocalizedPath } from '../lib/quote';
 interface Props { locale: Locale; }
 const { locale } = Astro.props;
 const copy = marketing[locale];
+const whatsappIntro = locale === 'es'
+  ? 'Hola Erick, quiero conversar sobre tus servicios de ingeniería.'
+  : 'Hi Erick, I would like to discuss your engineering services.';
 ---
 <BaseLayout title={copy.meta.services[0]} description={copy.meta.services[1]} locale={locale}>
   <PageHero title={copy.services.title} intro={copy.services.intro} marker={locale === 'es' ? 'ATLAS / SERVICIOS' : 'ATLAS / SERVICES'} />
-  <section class="content-section"><div class="page-shell"><ServicesGrid locale={locale} /><aside class="service-boundary"><p>{copy.services.boundary}</p><a class="button-link button-signal" href={getLocalizedPath('/contact', locale)}>{copy.home.closingCta}</a></aside></div></section>
+  <section class="content-section"><div class="page-shell"><ServicesGrid locale={locale} /><aside class="service-boundary"><p>{copy.services.boundary}</p><div class="service-boundary-actions"><a class="button-link button-signal" href={createWhatsAppUrl(whatsappIntro)} target="_blank" rel="noopener noreferrer">WhatsApp<span aria-hidden="true">↗</span></a><a class="button-link button-on-dark" href={`${getLocalizedPath('/contact', locale)}#quote`}>{copy.home.closingCta}</a></div></aside></div></section>
 </BaseLayout>

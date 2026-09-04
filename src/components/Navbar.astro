@@ -2,8 +2,8 @@
 import { SiteNavigation } from './islands/SiteNavigation';
 import type { Locale } from '../data/site';
 
-interface Props { locale?: Locale; }
-const { locale = 'en' } = Astro.props;
+interface Props { locale?: Locale; localized?: boolean; }
+const { locale = 'en', localized = true } = Astro.props;
 ---
 
-<SiteNavigation locale={locale} currentPath={Astro.url.pathname.replace(/\/$/, '') || '/'} client:load />
+<SiteNavigation locale={locale} currentPath={Astro.url.pathname.replace(/\/$/, '') || '/'} localized={localized} client:load />

@@ -8,12 +8,12 @@ Built with [Astro](https://astro.build) + [Tailwind CSS](https://tailwindcss.com
 
 | Path | What it is |
 | :--- | :--- |
-| `src/pages/` | Routes — home, experience, projects, blog, education, contact, resume |
+| `src/pages/` | English routes plus complete Spanish equivalents under `/es` |
 | `src/data/projects.json` | Curated project portfolio (the "status board" on `/projects`) |
 | `src/data/experience.json` | Work history rendered on `/experience` |
 | `src/data/education.json` | Education rendered on `/education` |
-| `src/content/blog/` | Blog posts (Markdown, Astro content collection) |
-| `src/components/` | Astro components — cards, timeline, skills grid, nav, footer |
+| `src/content/blog/` | Eight English articles plus eight Spanish translations under `es/` |
+| `src/components/` | Astro presentation components and narrowly hydrated React islands |
 | `src/lib/projects.ts` | Project types + status/language color helpers |
 | `public/` | Static assets — `resume.pdf`, favicons |
 
@@ -32,3 +32,6 @@ fill `links.live` / `links.repo` as available.
 | `npm run dev` | Start local dev server at `localhost:4321` |
 | `npm run build` | Build to `./dist/` |
 | `npm run preview` | Preview the production build locally |
+| `npm run verify` | Unit checks, Astro diagnostics, production build, and internal-link validation |
+| `npm run test:e2e` | Compact Playwright browser flows against the production preview |
+| `npm run verify:all` | Complete local release gate |
