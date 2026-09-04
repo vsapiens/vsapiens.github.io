@@ -1,7 +1,16 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import educationData from '../data/education.json';
-import certData from '../data/certifications.json';
+import certDataRaw from '../data/certifications.json';
+
+interface Certification {
+  name: string;
+  issuer: string;
+  date: string;
+  credentialUrl?: string;
+}
+
+const certData: Certification[] = certDataRaw;
 
 function formatDate(dateStr: string): string {
   if (!dateStr.includes('-')) return dateStr;

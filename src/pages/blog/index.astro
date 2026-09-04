@@ -2,7 +2,18 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BlogCard from '../../components/BlogCard.astro';
 import { getCollection } from 'astro:content';
-import externalPosts from '../../data/external-posts.json';
+import externalPostsData from '../../data/external-posts.json';
+
+interface ExternalPost {
+  title: string;
+  description: string;
+  date: string;
+  tags: string[];
+  url: string;
+  platform: string;
+}
+
+const externalPosts: ExternalPost[] = externalPostsData;
 
 const internalPosts = (await getCollection('blog'))
   .filter((post) => !post.data.draft)

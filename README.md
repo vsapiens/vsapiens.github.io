@@ -2,7 +2,7 @@
 
 Personal site of **Erick González** — Lead Performance Engineer, Backend Developer, and AI Builder.
 
-Built with [Astro](https://astro.build) + [Tailwind CSS](https://tailwindcss.com). Dark, terminal-inspired theme. Deployed to GitHub Pages.
+Built with [Astro](https://astro.build) + [Tailwind CSS](https://tailwindcss.com). Bright, systems-atlas visual foundation. Deployed to GitHub Pages.
 
 ## Structure
 

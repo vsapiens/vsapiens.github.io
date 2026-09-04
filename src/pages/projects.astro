@@ -2,10 +2,10 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import FeaturedProjectCard from '../components/FeaturedProjectCard.astro';
 import ProjectItem from '../components/ProjectItem.astro';
-import projectsData from '../data/projects.json';
+import { projectArchive } from '../data/site';
 import { categoryOrder, type Project } from '../lib/projects';
 
-const projects = projectsData as Project[];
+const projects = projectArchive as Project[];
 const featured = projects.filter((p) => p.featured);
 const rest = projects.filter((p) => !p.featured);
 
