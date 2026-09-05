@@ -1,0 +1,15 @@
+---
+import type { EvidenceMetric, Locale } from '../data/site';
+
+interface Props { locale: Locale; items: readonly EvidenceMetric[]; label?: string; }
+const { locale, items, label } = Astro.props;
+---
+
+<dl class="evidence-strip" aria-label={label}>
+  {items.map((metric, index) => (
+    <div class="evidence-strip-item">
+      <dt><span class="evidence-strip-index">{String(index + 1).padStart(2, '0')}</span>{metric.label[locale]}</dt>
+      <dd><strong>{metric.value}</strong><span>{metric.context[locale]}</span></dd>
+    </div>
+  ))}
+</dl>

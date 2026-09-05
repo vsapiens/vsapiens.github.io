@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import SEO from '../components/SEO.astro';
 import type { Locale } from '../data/site';
+import archivoWoff2 from '@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2?url';
 import '../styles/global.css';
 
 interface Props {
@@ -20,7 +21,7 @@ const { title, description, locale = 'en', image, type, localized = true, noInde
 
 <!doctype html>
 <html lang={locale === 'es' ? 'es-MX' : 'en'}>
-  <head><SEO title={title} description={description} locale={locale} image={image} type={type} localized={localized} noIndex={noIndex} /></head>
+  <head><link rel="preload" as="font" type="font/woff2" href={archivoWoff2} crossorigin /><SEO title={title} description={description} locale={locale} image={image} type={type} localized={localized} noIndex={noIndex} /></head>
   <body>
     <a class="skip-link" href="#main-content">{locale === 'es' ? 'Saltar al contenido' : 'Skip to content'}</a>
     <Navbar locale={locale} localized={localized} />

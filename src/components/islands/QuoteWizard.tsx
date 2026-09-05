@@ -1,210 +1,216 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { services, type Locale } from '@/data/site';
+import { type Locale } from '@/data/site';
 import {
+  QUOTE_STORAGE_KEY,
+  TEXTAREA_MAX,
+  budgetModeLabels,
   buildQuoteBrief,
-  createMailtoUrl,
-  createWhatsAppUrl,
-  formatPrice,
+  emptyQuoteAnswers,
+  getRequestedService,
+  isServiceId,
+  parseQuoteAnswers,
+  serializeQuoteAnswers,
   validateQuoteAnswers,
+  type BudgetMode,
   type QuoteAnswers,
   type QuoteField,
 } from '@/lib/quote';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Stepper } from '@/components/ui/stepper';
+import { quoteCopy } from './quote/copy';
+import { ServiceCards } from './quote/ServiceCards';
+import { QuoteLedger } from './quote/QuoteLedger';
+import { HandoffPanel } from './quote/HandoffPanel';
 
-const emptyAnswers: QuoteAnswers = {
-  serviceId: '',
-  situation: '',
-  timeline: '',
-  budgetContext: '',
-};
+/** Fields validated by each step, in order. Step 3 (review) has no required fields of its own. */
+const stepFields: readonly QuoteField[][] = [['serviceId'], ['situation'], ['timeline', 'budgetMode'], []];
+const REVIEW = 3;
 
-const copy = {
-  en: {
-    eyebrow: 'PROJECT STARTER',
-    title: 'Turn the constraint into a useful brief.',
-    intro: 'Four short steps. Your answers stay in this browser until you choose WhatsApp, email, or copy.',
-    step: 'Step', of: 'of', result: 'Brief ready',
-    service: 'What kind of help do you need?',
-    situation: 'What is happening today?', situationHint: 'Share the symptom, decision, role, or product boundary. Leave out credentials and customer data.',
-    timeline: 'What timing are you working with?',
-    budget: 'What should I know about budget or context?', budgetHint: 'Include a range, constraints, team shape, or what has already been tried.',
-    timelines: ['Flexible / exploring', 'Within 2–4 weeks', 'Urgent / incident-driven'],
-    back: 'Back', next: 'Continue', create: 'Create brief', edit: 'Edit answers', copy: 'Copy brief', copied: 'Brief copied.', copyFailed: 'Copy was unavailable. Select the brief and copy it manually.',
-    whatsapp: 'Send by WhatsApp', email: 'Send by email', privacy: 'Nothing is sent automatically. Opening WhatsApp or email transfers this brief only after you confirm there.',
-    errors: { serviceId: 'Choose one service.', situation: 'Describe the current situation.', timeline: 'Choose a timeline.', budgetContext: 'Add budget or project context.' },
-    subject: 'Project brief for Erick González',
-  },
-  es: {
-    eyebrow: 'INICIO DE PROYECTO',
-    title: 'Convierte la restricción en un resumen útil.',
-    intro: 'Cuatro pasos breves. Tus respuestas permanecen en este navegador hasta que elijas WhatsApp, correo o copiar.',
-    step: 'Paso', of: 'de', result: 'Resumen listo',
-    service: '¿Qué tipo de ayuda necesitas?',
-    situation: '¿Qué está ocurriendo hoy?', situationHint: 'Comparte el síntoma, la decisión, el rol o el límite del producto. No incluyas credenciales ni datos de clientes.',
-    timeline: '¿Con qué plazo estás trabajando?',
-    budget: '¿Qué debo saber del presupuesto o contexto?', budgetHint: 'Incluye un rango, restricciones, forma del equipo o lo que ya intentaron.',
-    timelines: ['Flexible / explorando', 'Dentro de 2–4 semanas', 'Urgente / motivado por incidente'],
-    back: 'Atrás', next: 'Continuar', create: 'Crear resumen', edit: 'Editar respuestas', copy: 'Copiar resumen', copied: 'Resumen copiado.', copyFailed: 'No fue posible copiar. Selecciona el resumen y cópialo manualmente.',
-    whatsapp: 'Enviar por WhatsApp', email: 'Enviar por correo', privacy: 'Nada se envía automáticamente. WhatsApp o correo reciben este resumen sólo cuando confirmas el envío allí.',
-    errors: { serviceId: 'Elige un servicio.', situation: 'Describe la situación actual.', timeline: 'Elige un plazo.', budgetContext: 'Agrega presupuesto o contexto del proyecto.' },
-    subject: 'Resumen de proyecto para Erick González',
-  },
-} as const;
+function readStorage(): string | null {
+  try { return window.sessionStorage.getItem(QUOTE_STORAGE_KEY); } catch { return null; }
+}
+function writeStorage(value: string | null) {
+  try { value === null ? window.sessionStorage.removeItem(QUOTE_STORAGE_KEY) : window.sessionStorage.setItem(QUOTE_STORAGE_KEY, value); } catch { /* storage unavailable */ }
+}
 
-const stepFields: QuoteField[] = ['serviceId', 'situation', 'timeline', 'budgetContext'];
+/** Highest step whose prerequisites are all valid, so restored or pre-filled answers unlock the stepper honestly. */
+function furthestValidStep(answers: QuoteAnswers): number {
+  const { errors } = validateQuoteAnswers(answers);
+  for (let step = 0; step < REVIEW; step += 1) {
+    if (stepFields[step].some((field) => errors[field])) return step;
+  }
+  return REVIEW;
+}
 
 export function QuoteWizard({ locale }: { locale: Locale }) {
-  const [answers, setAnswers] = useState<QuoteAnswers>(emptyAnswers);
+  const t = quoteCopy[locale];
+  const [answers, setAnswers] = useState<QuoteAnswers>(emptyQuoteAnswers);
   const [step, setStep] = useState(0);
+  const [maxReached, setMaxReached] = useState(0);
   const [fieldError, setFieldError] = useState<QuoteField | null>(null);
-  const [copyStatus, setCopyStatus] = useState('');
+  const [hydrated, setHydrated] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const serviceRef = useRef<HTMLInputElement>(null);
   const situationRef = useRef<HTMLTextAreaElement>(null);
   const timelineRef = useRef<HTMLInputElement>(null);
-  const budgetRef = useRef<HTMLTextAreaElement>(null);
-  const t = copy[locale];
+  const budgetRef = useRef<HTMLInputElement>(null);
+  const focusHeadingOnStep = useRef(false);
 
   useEffect(() => {
-    const requestedService = new URLSearchParams(window.location.search).get('service') ?? '';
-    if (services.some((service) => service.id === requestedService)) {
-      setAnswers((current) => ({ ...current, serviceId: requestedService }));
-    }
+    const restored = parseQuoteAnswers(readStorage()) ?? emptyQuoteAnswers;
+    const requested = getRequestedService(window.location.search);
+    const initial = requested ? { ...restored, serviceId: requested } : restored;
+    const reached = furthestValidStep(initial);
+    setAnswers(initial);
+    setMaxReached(reached);
+    if (requested) setStep(Math.min(1, reached));
+    setHydrated(true);
   }, []);
 
-  const brief = useMemo(() => {
-    if (step !== 4 || !validateQuoteAnswers(answers).valid) return '';
-    return buildQuoteBrief(answers, locale);
-  }, [answers, locale, step]);
+  useEffect(() => {
+    if (!hydrated) return;
+    writeStorage(answers === emptyQuoteAnswers ? null : serializeQuoteAnswers(answers));
+  }, [answers, hydrated]);
+
+  useEffect(() => {
+    if (!focusHeadingOnStep.current) return;
+    focusHeadingOnStep.current = false;
+    headingRef.current?.focus({ preventScroll: true });
+    const section = document.getElementById('quote');
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (section && section.getBoundingClientRect().top < 0) section.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+  }, [step]);
+
+  const validation = useMemo(() => validateQuoteAnswers(answers), [answers]);
+  const brief = useMemo(() => (validation.valid ? buildQuoteBrief(answers, locale) : ''), [answers, locale, validation.valid]);
 
   const setAnswer = (field: QuoteField, value: string) => {
     setAnswers((current) => ({ ...current, [field]: value }));
     if (fieldError === field) setFieldError(null);
   };
 
+  const goToStep = (next: number) => {
+    setFieldError(null);
+    focusHeadingOnStep.current = true;
+    setStep(next);
+  };
+
   const focusField = (field: QuoteField) => {
-    const refs = { serviceId: serviceRef, situation: situationRef, timeline: timelineRef, budgetContext: budgetRef };
-    refs[field].current?.focus();
+    const refs: Partial<Record<QuoteField, React.RefObject<HTMLElement | null>>> = { serviceId: serviceRef, situation: situationRef, timeline: timelineRef, budgetMode: budgetRef };
+    refs[field]?.current?.focus();
   };
 
   const continueFlow = () => {
-    const field = stepFields[step];
-    const value = answers[field]?.trim();
-    const invalidService = field === 'serviceId' && !services.some((service) => service.id === value);
-    if (!value || invalidService) {
-      setFieldError(field);
-      requestAnimationFrame(() => focusField(field));
+    const invalidField = stepFields[step].find((field) => validation.errors[field] || (field === 'serviceId' && !isServiceId(answers.serviceId)));
+    if (invalidField) {
+      setFieldError(invalidField);
+      requestAnimationFrame(() => focusField(invalidField));
       return;
     }
-
-    if (step === 3) {
-      const validation = validateQuoteAnswers(answers);
-      if (!validation.valid) {
-        const firstInvalid = stepFields.find((candidate) => validation.errors[candidate]);
-        if (firstInvalid) {
-          setFieldError(firstInvalid);
-          setStep(stepFields.indexOf(firstInvalid));
-          requestAnimationFrame(() => focusField(firstInvalid));
-        }
-        return;
-      }
-      setStep(4);
-      return;
-    }
-
-    setStep((current) => current + 1);
+    setMaxReached((current) => Math.max(current, step + 1));
+    goToStep(step + 1);
   };
 
-  const copyBrief = async () => {
-    try {
-      await navigator.clipboard.writeText(brief);
-      setCopyStatus(t.copied);
-    } catch {
-      setCopyStatus(t.copyFailed);
-    }
+  const startOver = () => {
+    writeStorage(null);
+    setAnswers(emptyQuoteAnswers);
+    setMaxReached(0);
+    goToStep(0);
   };
 
   const errorId = fieldError ? `quote-${fieldError}-error` : undefined;
+  const firstMissing = stepFields.findIndex((fields) => fields.some((field) => validation.errors[field]));
+  const counter = (value: string) => <span className="quote-counter" aria-live="polite">{value.length.toLocaleString('en-US')} / {TEXTAREA_MAX} {t.counter}</span>;
 
   return (
-    <section className="quote-wizard" id="quote" aria-labelledby="quote-title">
-      <div className="quote-heading">
-        <p>{t.eyebrow}</p>
+    <div className="quote-wizard" aria-labelledby="quote-title" data-step={step}>
+      <header className="quote-masthead">
+        <p className="quote-eyebrow">{t.eyebrow}</p>
         <h2 id="quote-title">{t.title}</h2>
-        <span>{t.intro}</span>
-      </div>
+        <p className="quote-intro">{t.intro}</p>
+      </header>
 
-      <div className="quote-panel">
-        <div className="quote-progress-copy">
-          <span>{step < 4 ? `${t.step} ${step + 1} ${t.of} 4` : t.result}</span>
-          <strong>{step < 4 ? `${(step + 1) * 25}%` : '100%'}</strong>
-        </div>
-        <Progress value={step < 4 ? (step + 1) * 25 : 100} label={step < 4 ? `${t.step} ${step + 1} ${t.of} 4` : t.result} />
+      <div className="quote-layout">
+        <Stepper steps={t.steps.map((label) => ({ label }))} current={step} maxReached={maxReached} onSelect={goToStep} label={t.stepsLabel} doneLabel={t.done} />
 
-        {step === 0 && (
-          <div className="quote-step">
-            <h3>{t.service}</h3>
-            <RadioGroup value={answers.serviceId} onValueChange={(value) => setAnswer('serviceId', value)} label={t.service} className="quote-service-options" describedBy={fieldError === 'serviceId' ? errorId : undefined} invalid={fieldError === 'serviceId'}>
-              {services.map((service, index) => (
-                <RadioGroupItem key={service.id} name="quote-service" value={service.id} checked={answers.serviceId === service.id} inputRef={index === 0 ? serviceRef : undefined}>
-                  <span className="quote-option-index">0{index + 1}</span>
-                  <span><strong>{service.name[locale]}</strong><small>{service.description[locale]}</small></span>
-                  <b>{formatPrice(service.price, locale)}</b>
-                </RadioGroupItem>
-              ))}
-            </RadioGroup>
-            {fieldError === 'serviceId' && <p className="quote-error" id={errorId} role="alert">{t.errors.serviceId}</p>}
-          </div>
-        )}
+        <div className="quote-panel">
+          <p className="quote-panel-marker" aria-hidden="true">{String(step + 1).padStart(2, '0')} / {String(t.steps.length).padStart(2, '0')}</p>
 
-        {step === 1 && (
-          <div className="quote-step">
-            <label htmlFor="quote-situation"><strong>{t.situation}</strong><span>{t.situationHint}</span></label>
-            <textarea ref={situationRef} id="quote-situation" rows={6} value={answers.situation} onChange={(event) => setAnswer('situation', event.target.value)} aria-invalid={fieldError === 'situation'} aria-describedby={fieldError === 'situation' ? errorId : undefined} />
-            {fieldError === 'situation' && <p className="quote-error" id={errorId} role="alert">{t.errors.situation}</p>}
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="quote-step">
-            <h3>{t.timeline}</h3>
-            <RadioGroup value={answers.timeline} onValueChange={(value) => setAnswer('timeline', value)} label={t.timeline} className="quote-timeline-options" describedBy={fieldError === 'timeline' ? errorId : undefined} invalid={fieldError === 'timeline'}>
-              {t.timelines.map((timeline, index) => <RadioGroupItem key={timeline} name="quote-timeline" value={timeline} checked={answers.timeline === timeline} inputRef={index === 0 ? timelineRef : undefined}><span className="quote-option-index">0{index + 1}</span><strong>{timeline}</strong></RadioGroupItem>)}
-            </RadioGroup>
-            {fieldError === 'timeline' && <p className="quote-error" id={errorId} role="alert">{t.errors.timeline}</p>}
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="quote-step">
-            <label htmlFor="quote-budget"><strong>{t.budget}</strong><span>{t.budgetHint}</span></label>
-            <textarea ref={budgetRef} id="quote-budget" rows={6} value={answers.budgetContext} onChange={(event) => setAnswer('budgetContext', event.target.value)} aria-invalid={fieldError === 'budgetContext'} aria-describedby={fieldError === 'budgetContext' ? errorId : undefined} />
-            {fieldError === 'budgetContext' && <p className="quote-error" id={errorId} role="alert">{t.errors.budgetContext}</p>}
-          </div>
-        )}
-
-        {step === 4 && brief && (
-          <div className="quote-result">
-            <pre tabIndex={0}>{brief}</pre>
-            <p className="quote-privacy">{t.privacy}</p>
-            <div className="quote-result-actions">
-              <a className="button-link button-signal" href={createWhatsAppUrl(brief)} target="_blank" rel="noopener noreferrer">{t.whatsapp}<span aria-hidden="true">↗</span></a>
-              <a className="button-link button-secondary" href={createMailtoUrl(t.subject, brief)}>{t.email}</a>
-              <Button variant="ghost" size="lg" onClick={copyBrief}>{t.copy}</Button>
+          {step === 0 && (
+            <div className="quote-step">
+              <h3 ref={headingRef} tabIndex={-1}>{t.service}</h3>
+              <p className="quote-hint">{t.serviceHint}</p>
+              <ServiceCards locale={locale} value={answers.serviceId} onChange={(value) => setAnswer('serviceId', value)} label={t.service} invalid={fieldError === 'serviceId'} describedBy={fieldError === 'serviceId' ? errorId : undefined} firstRef={serviceRef} copy={t} />
+              {fieldError === 'serviceId' && <p className="quote-error" id={errorId} role="alert">{t.errors.serviceId}</p>}
             </div>
-            <p className="quote-copy-status" role="status" aria-live="polite">{copyStatus}</p>
-          </div>
-        )}
+          )}
 
-        {step < 4 && (
+          {step === 1 && (
+            <div className="quote-step">
+              <h3 ref={headingRef} tabIndex={-1}><label htmlFor="quote-situation">{t.situation}</label></h3>
+              <p className="quote-hint" id="quote-situation-hint">{t.situationHint}</p>
+              <textarea ref={situationRef} id="quote-situation" rows={7} maxLength={TEXTAREA_MAX} value={answers.situation} onChange={(event) => setAnswer('situation', event.target.value)} aria-invalid={fieldError === 'situation'} aria-describedby={['quote-situation-hint', fieldError === 'situation' ? errorId : ''].filter(Boolean).join(' ')} />
+              {counter(answers.situation)}
+              {fieldError === 'situation' && <p className="quote-error" id={errorId} role="alert">{t.errors.situation}</p>}
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="quote-step">
+              <h3 ref={headingRef} tabIndex={-1}>{t.timeline}</h3>
+              <RadioGroup value={answers.timeline} onValueChange={(value) => setAnswer('timeline', value)} label={t.timeline} className="quote-timeline-options" describedBy={fieldError === 'timeline' ? errorId : undefined} invalid={fieldError === 'timeline'}>
+                {t.timelines.map((timeline, index) => <RadioGroupItem key={timeline} name="quote-timeline" value={timeline} checked={answers.timeline === timeline} inputRef={index === 0 ? timelineRef : undefined}><span className="quote-option-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><strong>{timeline}</strong></RadioGroupItem>)}
+              </RadioGroup>
+              {fieldError === 'timeline' && <p className="quote-error" id={errorId} role="alert">{t.errors.timeline}</p>}
+
+              <h3 className="quote-subhead">{t.budget}</h3>
+              <p className="quote-hint">{t.budgetHint}</p>
+              <RadioGroup value={answers.budgetMode} onValueChange={(value) => setAnswer('budgetMode', value as BudgetMode)} label={t.budget} className="quote-timeline-options" describedBy={fieldError === 'budgetMode' ? errorId : undefined} invalid={fieldError === 'budgetMode'}>
+                {(Object.keys(budgetModeLabels[locale]) as Exclude<BudgetMode, ''>[]).map((mode, index) => <RadioGroupItem key={mode} name="quote-budget-mode" value={mode} checked={answers.budgetMode === mode} inputRef={index === 0 ? budgetRef : undefined}><span className="quote-option-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><strong>{budgetModeLabels[locale][mode]}</strong></RadioGroupItem>)}
+              </RadioGroup>
+              {fieldError === 'budgetMode' && <p className="quote-error" id={errorId} role="alert">{t.errors.budgetMode}</p>}
+
+              <label className="quote-optional" htmlFor="quote-budget">{t.budgetContext}</label>
+              <textarea id="quote-budget" rows={4} maxLength={TEXTAREA_MAX} value={answers.budgetContext} onChange={(event) => setAnswer('budgetContext', event.target.value)} />
+              {counter(answers.budgetContext)}
+            </div>
+          )}
+
+          {step === REVIEW && (
+            <div className="quote-step quote-review">
+              <h3 ref={headingRef} tabIndex={-1}>{t.review}</h3>
+              <fieldset className="quote-identity">
+                <legend>{t.identity}</legend>
+                <p className="quote-hint">{t.identityHint}</p>
+                <div className="quote-identity-grid">
+                  {(['name', 'company', 'role'] as const).map((field) => (
+                    <label key={field}><span>{t[field]}</span><input id={`quote-${field}`} type="text" maxLength={120} autoComplete={field === 'name' ? 'name' : field === 'company' ? 'organization' : 'organization-title'} value={answers[field]} onChange={(event) => setAnswer(field, event.target.value)} /></label>
+                  ))}
+                </div>
+              </fieldset>
+              {brief ? (
+                <HandoffPanel brief={brief} copy={t} />
+              ) : (
+                <div className="quote-missing" role="alert">
+                  <p>{t.missing}</p>
+                  <Button variant="secondary" size="lg" onClick={() => goToStep(Math.max(0, firstMissing))}>{t.fix}</Button>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="quote-navigation">
-            <Button variant="ghost" size="lg" onClick={() => { setFieldError(null); setStep((current) => Math.max(0, current - 1)); }} disabled={step === 0}>{t.back}</Button>
-            <Button variant="primary" size="lg" onClick={continueFlow}>{step === 3 ? t.create : t.next}</Button>
+            <Button variant="ghost" size="lg" onClick={() => goToStep(Math.max(0, step - 1))} disabled={step === 0}>{t.back}</Button>
+            {step < REVIEW
+              ? <Button variant="primary" size="lg" onClick={continueFlow}>{t.next[step]}</Button>
+              : <Button variant="ghost" size="lg" onClick={startOver}>{t.startOver}</Button>}
           </div>
-        )}
-        {step === 4 && <Button variant="ghost" size="lg" className="quote-edit" onClick={() => { setCopyStatus(''); setStep(0); }}>{t.edit}</Button>}
+          <p className="quote-storage-note">{t.storage}</p>
+        </div>
+
+        <QuoteLedger answers={answers} locale={locale} copy={t} onEdit={goToStep} briefChars={brief.length} />
       </div>
-    </section>
+    </div>
   );
 }

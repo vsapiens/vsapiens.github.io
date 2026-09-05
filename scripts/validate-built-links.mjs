@@ -42,12 +42,22 @@ async function resolvesToOutput(rawHref, sourceFile) {
   return (await Promise.all(candidates.map(exists))).some(Boolean);
 }
 
-const htmlFiles = (await walk(dist)).filter((file) => file.endsWith('.html'));
+const builtFiles = await walk(dist);
+const htmlFiles = builtFiles.filter((file) => file.endsWith('.html'));
+
+for (const file of builtFiles.filter((candidate) => candidate.endsWith('.css'))) {
+  if (/fonts\.(?:googleapis|gstatic)\.com/.test(await readFile(file, 'utf8'))) {
+    failures.push(`${pageURL(file)} references a third-party font host; fonts must stay self-hosted.`);
+  }
+}
 
 for (const file of htmlFiles) {
   const html = await readFile(file, 'utf8');
   if (html.includes('docs.google.com/forms') || html.includes('forms.gle')) {
     failures.push(`${pageURL(file)} still contains a Google Forms embed.`);
+  }
+  if (/fonts\.(?:googleapis|gstatic)\.com/.test(html)) {
+    failures.push(`${pageURL(file)} references a third-party font host; fonts must stay self-hosted.`);
   }
 
   for (const tag of html.matchAll(/<a\b[^>]*>/gi)) {
