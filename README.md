@@ -32,6 +32,7 @@ fill `links.live` / `links.repo` as available.
 | `npm run dev` | Start local dev server at `localhost:4321` |
 | `npm run build` | Build to `./dist/` |
 | `npm run preview` | Preview the production build locally |
+| `npm run preview:static` | Serve `./dist` with the foreground static server Playwright uses |
 | `npm run verify` | Unit checks, Astro diagnostics, production build, and internal-link validation |
-| `npm run test:e2e` | Compact Playwright browser flows against the production preview |
+| `npm run test:e2e` | Compact Playwright browser flows against the built `dist` (set `PLAYWRIGHT_CHROMIUM_PATH` to reuse a local Chromium) |
 | `npm run verify:all` | Complete local release gate |
