@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QUOTE_STORAGE_KEY, serializeQuoteAnswers, emptyQuoteAnswers } from '@/lib/quote';
+import { QUOTE_STORAGE_KEY, serializeQuoteAnswers, defaultQuoteAnswers } from '@/lib/quote';
 import { QuoteWizard } from './QuoteWizard';
 
 beforeEach(() => {
@@ -11,70 +11,82 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-test('exposes a 1:1 clickable stepper and blocks unreached steps', async () => {
+test('reaches a complete brief with defaults after choosing a service and describing the situation', async () => {
   const user = userEvent.setup();
   render(<QuoteWizard locale="en" />);
 
-  const stepper = screen.getByRole('list', { name: 'Brief steps' });
-  const buttons = within(stepper).getAllByRole('button');
-  expect(buttons).toHaveLength(4);
-  expect(buttons[0].getAttribute('aria-current')).toBe('step');
-  expect(buttons[1].hasAttribute('disabled')).toBe(true);
+  const steps = within(screen.getByRole('list', { name: 'Brief steps' })).getAllByRole('button');
+  expect(steps).toHaveLength(2);
+  expect(steps[0].getAttribute('aria-current')).toBe('step');
+  expect(steps[1].hasAttribute('disabled')).toBe(true);
 
-  await user.click(screen.getByRole('button', { name: 'Continue → Situation' }));
-  expect(screen.getByRole('alert').textContent).toBe('Choose one service.');
+  await user.click(screen.getByRole('button', { name: 'Continue' }));
+  expect(screen.getByRole('alert').textContent).toContain('Choose one service.');
 
-  await user.click(screen.getByRole('radio', { name: /Performance audit/ }));
-  await user.click(screen.getByRole('button', { name: 'Continue → Situation' }));
-  expect(within(stepper).getAllByRole('button')[1].getAttribute('aria-current')).toBe('step');
-  expect(screen.getByRole('heading', { level: 3, name: 'What is happening today?' })).toBeTruthy();
+  await user.click(screen.getByRole('radio', { name: 'Performance audit' }));
+  await user.click(screen.getByRole('button', { name: 'Continue' }));
+  expect(screen.getByRole('alert').textContent).toContain('Describe the current situation.');
+
+  await user.type(screen.getByLabelText('What is happening today?'), 'p99 doubled under checkout load');
+  await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+  expect(screen.getByRole('heading', { level: 3, name: 'Your brief.' })).toBeTruthy();
+  const brief = screen.getByText(/Project brief/).textContent ?? '';
+  expect(brief).toContain('Service: Performance audit');
+  expect(brief).toContain('Timeline: Flexible / exploring');
+  expect(brief).toContain('Budget: Fixed price works for us');
+  expect(screen.getByRole('radio', { name: 'Flexible / exploring' })).toBeTruthy();
+  const links = screen.getAllByRole('link');
+  expect(links[0].textContent).toContain('Send on WhatsApp');
+  expect(links[0].getAttribute('href')).toMatch(/^https:\/\/wa\.me\/528120008400\?text=/);
 });
 
-test('pre-selects the requested service, starts on the situation step, and fills the ledger', async () => {
+test('pre-selects the requested service and carries its credit clause into the brief', async () => {
   window.history.replaceState({}, '', '/contact?service=diagnosis#quote');
-  render(<QuoteWizard locale="en" />);
-
-  expect(await screen.findByRole('heading', { level: 3, name: 'What is happening today?' })).toBeTruthy();
-  const ledger = screen.getByRole('complementary', { name: 'BRIEF / LEDGER' });
-  expect(ledger.textContent).toContain('Systems diagnosis');
-  expect(ledger.textContent).toContain('USD 500 · MXN 10,000');
-  expect(ledger.textContent).toContain('Credited toward a Performance audit booked within 30 days.');
-  expect(within(ledger).getByRole('button', { name: 'Edit: Service' })).toBeTruthy();
-});
-
-test('restores answers saved in this tab and shows the character budget', async () => {
-  window.sessionStorage.setItem(QUOTE_STORAGE_KEY, serializeQuoteAnswers({ ...emptyQuoteAnswers, serviceId: 'performance-audit', situation: 'p99 doubled under load' }));
   const user = userEvent.setup();
   render(<QuoteWizard locale="en" />);
 
-  await user.click(await screen.findByRole('button', { name: 'Continue → Situation' }));
-  const textarea = screen.getByLabelText('What is happening today?') as HTMLTextAreaElement;
-  expect(textarea.value).toBe('p99 doubled under load');
-  expect(screen.getByText('22 / 600 characters')).toBeTruthy();
+  const diagnosis = await screen.findByRole('radio', { name: 'Systems diagnosis' });
+  expect((diagnosis as HTMLInputElement).checked).toBe(true);
+  await user.type(screen.getByLabelText('What is happening today?'), 'Competing explanations for a slow report.');
+  await user.click(screen.getByRole('button', { name: 'Continue' }));
+  expect(screen.getByText(/Project brief/).textContent).toContain('Credit: Credited toward a Performance audit booked within 30 days.');
 });
 
-test('reviews a complete brief, orders WhatsApp first, and clears storage on start over', async () => {
+test('keeps identity collapsed, reveals context only for non-fixed budgets, and restores saved answers', async () => {
+  window.sessionStorage.setItem(QUOTE_STORAGE_KEY, serializeQuoteAnswers({ ...defaultQuoteAnswers, serviceId: 'performance-audit', situation: 'p99 doubled under load' }));
+  const user = userEvent.setup();
+  render(<QuoteWizard locale="en" />);
+
+  expect(((await screen.findByLabelText('What is happening today?')) as HTMLTextAreaElement).value).toBe('p99 doubled under load');
+  await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+  expect(screen.queryByLabelText('Name')).toBeNull();
+  const toggle = screen.getByRole('button', { name: /Add who to reply to/ });
+  expect(toggle.getAttribute('aria-expanded')).toBe('false');
+  await user.click(toggle);
+  await user.type(screen.getByLabelText('Name'), 'Ana Ruiz');
+  expect(screen.getByText(/Project brief/).textContent).toContain('Name: Ana Ruiz');
+
+  expect(screen.queryByLabelText(/Anything else that shapes the scope/)).toBeNull();
+  await user.click(screen.getByRole('radio', { name: 'We need a formal quote with an invoice' }));
+  expect(screen.getByLabelText(/Anything else that shapes the scope/)).toBeTruthy();
+});
+
+test('changes the service without losing the situation and clears storage on start over', async () => {
   const user = userEvent.setup();
   render(<QuoteWizard locale="es" />);
 
-  await user.click(screen.getByRole('radio', { name: /Auditoría de rendimiento/ }));
-  await user.click(screen.getByRole('button', { name: 'Continuar → Situación' }));
+  await user.click(screen.getByRole('radio', { name: 'Auditoría de rendimiento' }));
   await user.type(screen.getByLabelText('¿Qué está ocurriendo hoy?'), 'La latencia cambia bajo carga real.');
-  await user.click(screen.getByRole('button', { name: 'Continuar → Plazo' }));
-  await user.click(screen.getByRole('radio', { name: /Dentro de 2/ }));
-  await user.click(screen.getByRole('radio', { name: /El precio fijo/ }));
-  await user.click(screen.getByRole('button', { name: 'Revisar resumen' }));
+  await user.click(screen.getByRole('button', { name: 'Continuar' }));
+  expect(screen.getByText(/Resumen del proyecto/).textContent).toContain('Plazo: Flexible / explorando');
 
-  const brief = screen.getByText(/Resumen del proyecto/).textContent ?? '';
-  expect(brief).toContain('Inversión: MXN 30,000 · USD 1,500');
-  expect(brief).toContain('Duración: 2–3 semanas');
-  expect(brief).toContain('Presupuesto: El precio fijo nos funciona');
-  const links = screen.getAllByRole('link');
-  expect(links[0].textContent).toContain('Enviar por WhatsApp');
-  expect(links[0].getAttribute('href')).toMatch(/^https:\/\/wa\.me\/528120008400\?text=/);
+  await user.click(screen.getByRole('button', { name: 'Cambiar servicio' }));
+  expect((screen.getByLabelText('¿Qué está ocurriendo hoy?') as HTMLTextAreaElement).value).toBe('La latencia cambia bajo carga real.');
   expect(window.sessionStorage.getItem(QUOTE_STORAGE_KEY)).not.toBeNull();
 
   await user.click(screen.getByRole('button', { name: 'Empezar de nuevo' }));
   expect(window.sessionStorage.getItem(QUOTE_STORAGE_KEY)).toBeNull();
-  expect(screen.getByRole('heading', { level: 3, name: '¿Qué tipo de ayuda necesitas?' })).toBeTruthy();
+  expect((screen.getByLabelText('¿Qué está ocurriendo hoy?') as HTMLTextAreaElement).value).toBe('');
 });
