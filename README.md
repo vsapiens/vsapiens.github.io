@@ -13,9 +13,13 @@ Built with [Astro](https://astro.build) + [Tailwind CSS](https://tailwindcss.com
 | `src/data/experience.json` | Work history rendered on `/experience` |
 | `src/data/education.json` | Education rendered on `/education` |
 | `src/content/blog/` | Eight English articles plus eight Spanish translations under `es/` |
-| `src/components/` | Astro presentation components and narrowly hydrated React islands |
+| `src/components/` | Astro presentation components and narrowly hydrated React islands (`islands/quote/` is the four-step brief builder) |
+| `src/lib/quote.ts` | Quote validation, brief text, dual pricing, hand-off length budget, session persistence |
+| `src/lib/resume.ts` | Markdown export of the work history for the hiring lane |
+| `src/styles/` | `global.css` tokens and layout, `services.css`, `quote.css` |
 | `src/lib/projects.ts` | Project types + status/language color helpers |
 | `public/` | Static assets — `resume.pdf`, favicons |
+| `docs/superpowers/plans/` | Implementation plans and decision records (service durations, credit, invoicing policy) |
 
 ## Adding a project
 
