@@ -43,7 +43,7 @@ export function ContactLanes({ locale }: { locale: Locale }) {
 
   return (
     <Tabs value={lane} onValueChange={select} id={CONTACT_LANES_ID}>
-      <TabsList label={t.label} className="lane-switch">
+      <TabsList label={t.label} className="lane-nav">
         {lanes.map((candidate, index) => (
           <TabsTrigger key={candidate} value={candidate}>
             <span className="lane-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>

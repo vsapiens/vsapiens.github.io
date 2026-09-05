@@ -18,24 +18,20 @@ const routeInventory = [
   '/blog/load-testing-at-100k-rps', '/es/blog/load-testing-at-100k-rps',
 ];
 
+/** Walks the minimal path after a service was requested and returns the number of clicks it took. */
 async function completeQuote(page: Page, locale: 'en' | 'es') {
   const spanish = locale === 'es';
-  // A requested service skips the service step; the ledger still shows it and offers an edit affordance.
-  await expect(page.getByRole('heading', { level: 3, name: spanish ? '¿Qué está ocurriendo hoy?' : 'What is happening today?' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: spanish ? 'Diagnóstico de sistemas' : 'Performance audit' })).toBeChecked();
   const situation = page.locator('#quote-situation');
-  await page.getByRole('button', { name: spanish ? 'Continuar → Plazo' : 'Continue → Timeline' }).click();
+  await page.getByRole('button', { name: spanish ? 'Continuar' : 'Continue' }).click();
+  await expect(page.getByRole('alert')).toHaveText(spanish ? 'Describe la situación actual.' : 'Describe the current situation.');
   await expect(situation).toBeFocused();
   await situation.fill(spanish ? 'La latencia cambia bajo carga real.' : 'Latency changes under realistic load.');
-  await page.getByRole('button', { name: spanish ? 'Continuar → Plazo' : 'Continue → Timeline' }).click();
-
-  await page.getByRole('radio', { name: spanish ? /Dentro de 2/ : /Within 2/ }).check();
-  await page.getByRole('button', { name: spanish ? 'Revisar resumen' : 'Review brief' }).click();
-  await expect(page.getByRole('alert')).toHaveText(spanish ? 'Elige cómo manejar el presupuesto.' : 'Choose how you want to handle budget.');
-  await page.getByRole('radio', { name: spanish ? /El precio fijo/ : /Fixed price works/ }).check();
-  await page.locator('#quote-budget').fill(spanish ? 'Equipo pequeño; necesitamos evidencia y un plan.' : 'Small team; we need evidence and a plan.');
-  await page.getByRole('button', { name: spanish ? 'Revisar resumen' : 'Review brief' }).click();
-  await page.locator('#quote-name').fill('Ana Ruiz');
-  return page.locator('.quote-handoff pre');
+  let clicks = 0;
+  await page.getByRole('button', { name: spanish ? 'Continuar' : 'Continue' }).click();
+  clicks += 1;
+  await expect(page.getByRole('heading', { level: 3, name: spanish ? 'Tu resumen.' : 'Your brief.' })).toBeVisible();
+  return { brief: page.locator('.quote-brief pre'), clicks };
 }
 
 test('routes, bilingual metadata, structured data, and mobile navigation stay coherent', async ({ page, request }) => {
@@ -70,43 +66,53 @@ test('routes, bilingual metadata, structured data, and mobile navigation stay co
   await expect(dialog).toBeHidden();
 });
 
-test('the quote flow validates, preserves answers, and hands off exact bilingual briefs', async ({ page, context }) => {
+test('the quote flow reaches a sendable brief in two clicks and hands off exact bilingual briefs', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('/services');
   for (const price of ['USD 500', 'USD 1,500', 'USD 2,500', 'USD 5,000']) await expect(page.getByText(price, { exact: true })).toBeVisible();
   await page.getByRole('link', { name: /Quote this service/ }).nth(1).click();
   await expect(page).toHaveURL(/\/contact\?service=performance-audit#quote$/);
-  const englishBrief = await completeQuote(page, 'en');
-  await expect(englishBrief).toContainText('Name: Ana Ruiz');
-  await expect(englishBrief).toContainText('Service: Performance audit');
-  await expect(englishBrief).toContainText('Investment: USD 1,500 · MXN 30,000');
-  await expect(englishBrief).toContainText('Duration: 2–3 weeks');
-  await expect(englishBrief).toContainText('Budget: Fixed price works for us');
-  await expect(englishBrief).toContainText('Context: Small team; we need evidence and a plan.');
-  const englishText = await englishBrief.textContent();
-  const whatsappHref = await page.getByRole('link', { name: 'Send by WhatsApp' }).getAttribute('href');
-  expect(new URL(whatsappHref!).searchParams.get('text')).toBe(englishText);
+  const quoteBox = await page.locator('#quote').boundingBox();
+  expect(quoteBox?.y ?? -1).toBeGreaterThanOrEqual(60);
+
+  const english = await completeQuote(page, 'en');
+  await expect(english.brief).toContainText('Service: Performance audit');
+  await expect(english.brief).toContainText('Investment: USD 1,500 · MXN 30,000');
+  await expect(english.brief).toContainText('Duration: 2–3 weeks');
+  await expect(english.brief).toContainText('Timeline: Flexible / exploring');
+  await expect(english.brief).toContainText('Budget: Fixed price works for us');
+  const whatsapp = page.getByRole('link', { name: /Send on WhatsApp/ });
+  await expect(whatsapp).toHaveAttribute('href', /^https:\/\/wa\.me\/528120008400\?text=/);
+  // The send link is the second and last click of the minimal path.
+  expect(english.clicks + 1).toBe(2);
+  const englishText = await english.brief.textContent();
+  expect(new URL((await whatsapp.getAttribute('href'))!).searchParams.get('text')).toBe(englishText);
   await expect(page.getByRole('link', { name: 'Send by email' })).toHaveAttribute('href', /^mailto:iamerickfrank@gmail\.com\?/);
+
+  await page.getByRole('button', { name: /Add who to reply to/ }).click();
+  await page.locator('#quote-name').fill('Ana Ruiz');
+  await expect(english.brief).toContainText('Name: Ana Ruiz');
+  await page.getByText('We need a formal quote with an invoice').click();
+  await expect(page.locator('#quote-budget')).toBeVisible();
+  await expect(english.brief).toContainText('Budget: We need a formal quote with an invoice');
+
   await page.getByRole('button', { name: 'Copy brief' }).click();
-  await expect(page.getByRole('status')).toHaveText('Brief copied.');
-  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText().then((text) => text.replace(/\r\n/g, '\n')))).toBe(englishText?.replace(/\r\n/g, '\n'));
-  await page.getByRole('button', { name: 'Edit: Service' }).click();
-  await expect(page.getByRole('radio', { name: /Performance audit/ })).toBeChecked();
-  await expect(page.getByRole('list', { name: 'Brief steps' }).getByRole('button', { name: /Review & send/ })).toBeEnabled();
+  await expect(page.getByRole('status').filter({ hasText: 'Brief copied.' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Change service' }).click();
+  await expect(page.getByRole('radio', { name: 'Performance audit' })).toBeChecked();
+  await expect(page.locator('#quote-situation')).toHaveValue('Latency changes under realistic load.');
   await page.reload();
-  // Answers survive a reload through this tab's sessionStorage; the requested service still skips the service step.
-  await expect(page.getByRole('complementary', { name: 'BRIEF / LEDGER' })).toContainText('Performance audit');
   await expect(page.locator('#quote-situation')).toHaveValue('Latency changes under realistic load.');
 
   // Same tab, same origin: drop the English answers so the Spanish run starts clean.
   await page.evaluate(() => window.sessionStorage.clear());
   await page.goto('/es/contact?service=diagnosis#quote');
-  const quoteBox = await page.locator('#quote').boundingBox();
-  expect(quoteBox?.y ?? -1).toBeGreaterThanOrEqual(60);
-  const spanishBrief = await completeQuote(page, 'es');
-  await expect(spanishBrief).toContainText('Servicio: Diagnóstico de sistemas');
-  await expect(spanishBrief).toContainText('Inversión: MXN 10,000 · USD 500');
-  await expect(spanishBrief).toContainText('Crédito: Se descuenta de una Auditoría de rendimiento contratada dentro de 30 días.');
+  const spanish = await completeQuote(page, 'es');
+  await expect(spanish.brief).toContainText('Servicio: Diagnóstico de sistemas');
+  await expect(spanish.brief).toContainText('Inversión: MXN 10,000 · USD 500');
+  await expect(spanish.brief).toContainText('Crédito: Se descuenta de una Auditoría de rendimiento contratada dentro de 30 días.');
+  await expect(spanish.brief).toContainText('Plazo: Flexible / explorando');
 });
 
 test('the hiring lane exposes the work history, the PDF, and a Markdown copy without hiding the quote from deep links', async ({ page, context }) => {
@@ -162,7 +168,8 @@ test('key desktop, mobile, and quote states meet the compact accessibility gate'
 
   await page.setViewportSize({ width: 375, height: 667 });
   await page.goto('/contact');
-  await page.getByRole('button', { name: 'Continue → Situation' }).click();
+  await page.getByText('Systems diagnosis', { exact: true }).click();
+  await page.getByRole('button', { name: 'Continue' }).click();
   const quoteResults = await new AxeBuilder({ page }).include('#quote').withTags(['wcag2a', 'wcag2aa']).analyze();
   expect(quoteResults.violations).toEqual([]);
 });

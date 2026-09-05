@@ -1,11 +1,13 @@
 import { contact, services, type Locale, type Price, type Service } from '../data/site';
 
 export type BudgetMode = '' | 'fixed' | 'phased' | 'invoice';
+export type TimelineKey = '' | 'flexible' | 'weeks' | 'urgent';
 
 export interface QuoteAnswers {
   serviceId: string;
   situation: string;
-  timeline: string;
+  /** A locale-independent key; the label comes from timelineLabels. */
+  timeline: TimelineKey;
   budgetMode: BudgetMode;
   budgetContext: string;
   name: string;
@@ -32,6 +34,9 @@ export const emptyQuoteAnswers: QuoteAnswers = {
   role: '',
 };
 
+/** Honest defaults: prices are fixed and most first conversations are exploratory, so both fields start filled and cost zero clicks. */
+export const defaultQuoteAnswers: QuoteAnswers = { ...emptyQuoteAnswers, timeline: 'flexible', budgetMode: 'fixed' };
+
 /** Per-textarea character cap. Two capped fields plus fixed lines stay inside the mailto limits below even in Spanish. */
 export const TEXTAREA_MAX = 600;
 /** Outlook truncates hyperlinks near 2,048 characters; keep a margin for the client's own additions. */
@@ -41,6 +46,12 @@ export const WHATSAPP_SOFT_LIMIT = 1000;
 export const QUOTE_STORAGE_KEY = 'quote-brief:v1';
 
 const budgetModes: readonly Exclude<BudgetMode, ''>[] = ['fixed', 'phased', 'invoice'];
+const timelineKeys: readonly Exclude<TimelineKey, ''>[] = ['flexible', 'weeks', 'urgent'];
+
+export const timelineLabels: Record<Locale, Record<Exclude<TimelineKey, ''>, string>> = {
+  en: { flexible: 'Flexible / exploring', weeks: 'Within 2–4 weeks', urgent: 'Urgent / incident-driven' },
+  es: { flexible: 'Flexible / explorando', weeks: 'Dentro de 2–4 semanas', urgent: 'Urgente / motivado por incidente' },
+};
 
 export const budgetModeLabels: Record<Locale, Record<Exclude<BudgetMode, ''>, string>> = {
   en: { fixed: 'Fixed price works for us', phased: 'We need a phased plan', invoice: 'We need a formal quote with an invoice' },
@@ -103,6 +114,10 @@ export function validateQuoteAnswers(answers: Partial<QuoteAnswers>): QuoteValid
     errors.serviceId = 'Choose a valid service.';
   }
 
+  if (answers.timeline && !timelineKeys.includes(answers.timeline as Exclude<TimelineKey, ''>)) {
+    errors.timeline = 'Choose a timeline.';
+  }
+
   if (answers.budgetMode && !budgetModes.includes(answers.budgetMode as Exclude<BudgetMode, ''>)) {
     errors.budgetMode = 'Choose how you want to handle budget.';
   }
@@ -120,6 +135,7 @@ export function buildQuoteBrief(answers: QuoteAnswers, locale: Locale): string {
   if (!service) throw new Error('A valid service is required to build a quote brief.');
   const labels = briefLabels[locale];
   const budgetMode = answers.budgetMode ? budgetModeLabels[locale][answers.budgetMode] : '';
+  const timeline = answers.timeline ? timelineLabels[locale][answers.timeline] : '';
   const credit = formatCreditClause(service, locale);
 
   const lines: [string, string][] = [
@@ -131,7 +147,7 @@ export function buildQuoteBrief(answers: QuoteAnswers, locale: Locale): string {
     [labels.duration, service.duration[locale]],
     [labels.credit, credit],
     [labels.situation, answers.situation.trim()],
-    [labels.timeline, answers.timeline.trim()],
+    [labels.timeline, timeline],
     [labels.budget, budgetMode],
     [labels.context, answers.budgetContext.trim()],
   ];
@@ -205,11 +221,12 @@ export function parseQuoteAnswers(raw: string | null): QuoteAnswers | null {
   if (version !== storageVersion || !answers || typeof answers !== 'object') return null;
   const source = answers as Record<string, unknown>;
   const serviceId = typeof source.serviceId === 'string' && isServiceId(source.serviceId) ? source.serviceId : '';
-  const budgetMode = budgetModes.find((mode) => mode === source.budgetMode) ?? '';
+  const budgetMode = budgetModes.find((mode) => mode === source.budgetMode) ?? defaultQuoteAnswers.budgetMode;
+  const timeline = timelineKeys.find((key) => key === source.timeline) ?? defaultQuoteAnswers.timeline;
   return {
     serviceId,
     situation: clampText(source.situation),
-    timeline: clampText(source.timeline),
+    timeline,
     budgetMode,
     budgetContext: clampText(source.budgetContext),
     name: clampText(source.name),

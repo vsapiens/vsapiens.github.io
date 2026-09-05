@@ -8,6 +8,7 @@ import {
   buildQuoteBrief,
   createMailtoUrl,
   createWhatsAppUrl,
+  defaultQuoteAnswers,
   emptyQuoteAnswers,
   formatCreditClause,
   formatDualPrice,
@@ -19,6 +20,7 @@ import {
   parseQuoteAnswers,
   resolveInitialLane,
   serializeQuoteAnswers,
+  timelineLabels,
   validateQuoteAnswers,
   type QuoteAnswers,
 } from './quote';
@@ -27,7 +29,7 @@ const completeAnswers: QuoteAnswers = {
   ...emptyQuoteAnswers,
   serviceId: 'performance-audit',
   situation: 'API p99 regressions under checkout load',
-  timeline: 'Within 4 weeks',
+  timeline: 'weeks',
   budgetMode: 'fixed',
 };
 
@@ -67,6 +69,17 @@ describe('quote helpers', () => {
     });
   });
 
+  test('starts from honest defaults: flexible timeline and fixed price', () => {
+    expect(defaultQuoteAnswers).toEqual({ ...emptyQuoteAnswers, timeline: 'flexible', budgetMode: 'fixed' });
+    expect(validateQuoteAnswers({ ...defaultQuoteAnswers, serviceId: 'diagnosis', situation: 'p99 doubled' })).toEqual({ valid: true, errors: {} });
+    expect(timelineLabels.en.flexible).toBe('Flexible / exploring');
+    expect(timelineLabels.es.urgent).toBe('Urgente / motivado por incidente');
+  });
+
+  test('rejects a timeline that is not one of the offered keys', () => {
+    expect(validateQuoteAnswers({ ...completeAnswers, timeline: 'Within 4 weeks' as QuoteAnswers['timeline'] }).errors).toEqual({ timeline: 'Choose a timeline.' });
+  });
+
   test('rejects a non-empty service identifier that is not offered', () => {
     expect(validateQuoteAnswers({ ...completeAnswers, serviceId: 'unsupported-service' })).toEqual({
       valid: false,
@@ -80,7 +93,7 @@ describe('quote helpers', () => {
 
   test('builds an English brief with dual pricing, duration, and budget mode, omitting empty optional lines', () => {
     expect(buildQuoteBrief(completeAnswers, 'en')).toBe(
-      'Project brief\n\nService: Performance audit\nInvestment: USD 1,500 · MXN 30,000\nDuration: 2–3 weeks\nSituation: API p99 regressions under checkout load\nTimeline: Within 4 weeks\nBudget: Fixed price works for us',
+      'Project brief\n\nService: Performance audit\nInvestment: USD 1,500 · MXN 30,000\nDuration: 2–3 weeks\nSituation: API p99 regressions under checkout load\nTimeline: Within 2–4 weeks\nBudget: Fixed price works for us',
     );
   });
 
@@ -95,13 +108,13 @@ describe('quote helpers', () => {
       budgetContext: 'Need a CFDI before starting.',
     };
     expect(buildQuoteBrief(answers, 'en')).toBe(
-      'Project brief\n\nName: Ana Ruiz\nCompany: Acme\nRole: CTO\nService: Systems diagnosis\nInvestment: USD 500 · MXN 10,000\nDuration: 3–5 working days\nCredit: Credited toward a Performance audit booked within 30 days.\nSituation: API p99 regressions under checkout load\nTimeline: Within 4 weeks\nBudget: We need a formal quote with an invoice\nContext: Need a CFDI before starting.',
+      'Project brief\n\nName: Ana Ruiz\nCompany: Acme\nRole: CTO\nService: Systems diagnosis\nInvestment: USD 500 · MXN 10,000\nDuration: 3–5 working days\nCredit: Credited toward a Performance audit booked within 30 days.\nSituation: API p99 regressions under checkout load\nTimeline: Within 2–4 weeks\nBudget: We need a formal quote with an invoice\nContext: Need a CFDI before starting.',
     );
   });
 
   test('builds a Spanish brief using the Mexican price first', () => {
     expect(buildQuoteBrief(completeAnswers, 'es')).toBe(
-      'Resumen del proyecto\n\nServicio: Auditoría de rendimiento\nInversión: MXN 30,000 · USD 1,500\nDuración: 2–3 semanas\nSituación: API p99 regressions under checkout load\nPlazo: Within 4 weeks\nPresupuesto: El precio fijo nos funciona',
+      'Resumen del proyecto\n\nServicio: Auditoría de rendimiento\nInversión: MXN 30,000 · USD 1,500\nDuración: 2–3 semanas\nSituación: API p99 regressions under checkout load\nPlazo: Dentro de 2–4 semanas\nPresupuesto: El precio fijo nos funciona',
     );
   });
 
@@ -154,8 +167,8 @@ describe('quote helpers', () => {
     expect(parseQuoteAnswers(null)).toBeNull();
     expect(parseQuoteAnswers('not json')).toBeNull();
     expect(parseQuoteAnswers(JSON.stringify({ version: 99, answers }))).toBeNull();
-    expect(parseQuoteAnswers(JSON.stringify({ version: 1, answers: { serviceId: 'nope', budgetMode: 'weird', extra: 1 } }))).toEqual({
-      ...emptyQuoteAnswers,
+    expect(parseQuoteAnswers(JSON.stringify({ version: 1, answers: { serviceId: 'nope', timeline: 'Within 4 weeks', budgetMode: 'weird', extra: 1 } }))).toEqual({
+      ...defaultQuoteAnswers,
     });
   });
 
