@@ -104,7 +104,7 @@
 @media (max-width: 920px) {
   .quote-masthead { grid-template-columns: 1fr; }
   .quote-eyebrow { padding-top: 0; margin-bottom: 16px; }
-  .quote-masthead h2, .quote-intro { grid-column: 1; }
+  .quote-masthead h2, .quote-intro, .hiring-actions, .hiring-lane .availability { grid-column: 1; }
   .quote-layout { grid-template-columns: 1fr; }
   .quote-ledger { position: static; }
   .quote-stepper { order: -1; }
@@ -123,4 +123,32 @@
   .quote-navigation button { width: 100%; }
   .quote-navigation button:disabled { display: none; }
   .quote-budget-line { flex-direction: column; gap: 4px; }
+}
+
+/* Contact lanes: one segmented control above two server-rendered panels */
+.lane-switch-bar { border-bottom: 1px solid var(--grid-line); background: var(--surface); }
+.lane-switch { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; width: min(100%, 760px); margin-block: 26px; border: 1px solid var(--ink); }
+.lane-switch [role="tab"] { display: grid; grid-template-columns: 30px 1fr; grid-template-areas: "index name" "index hint"; column-gap: 8px; border: 0; border-radius: 0; background: var(--surface); padding: 14px 16px; color: var(--muted-ink); text-align: left; font-size: 1rem; }
+.lane-switch [role="tab"] + [role="tab"] { border-left: 1px solid var(--ink); }
+.lane-switch [role="tab"]:hover { color: var(--ink); background: var(--canvas); }
+.lane-switch [role="tab"][aria-selected="true"] { background: var(--ink); color: white; }
+.lane-index { grid-area: index; align-self: start; padding-top: 3px; color: var(--technical-blue); font: 500 .62rem "IBM Plex Mono", monospace; }
+.lane-switch [role="tab"][aria-selected="true"] .lane-index { color: var(--signal-coral); }
+.lane-name { grid-area: name; font-weight: 750; letter-spacing: -.02em; }
+.lane-hint { grid-area: hint; margin-top: 3px; font-size: .78rem; font-weight: 500; line-height: 1.35; }
+.lane-switch [role="tab"][aria-selected="true"] .lane-hint { color: #cbd5e1; }
+html[data-lane="hiring"] [data-lane-panel="consulting"], html[data-lane="consulting"] [data-lane-panel="hiring"] { display: none; }
+[role="tabpanel"][hidden] { display: none; }
+
+.hiring-lane .quote-masthead { margin-bottom: 40px; }
+.hiring-actions { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 28px; }
+.hiring-actions .copy-status { flex-basis: 100%; }
+.hiring-lane .availability { grid-column: 2; }
+.hiring-lane .evidence-strip { margin-bottom: 48px; }
+
+@media (max-width: 680px) {
+  .lane-switch { grid-template-columns: 1fr; }
+  .lane-switch [role="tab"] + [role="tab"] { border-left: 0; border-top: 1px solid var(--ink); }
+  .hiring-actions, .hiring-lane .availability { grid-column: 1; }
+  .hiring-actions .button-link, .hiring-actions button { width: 100%; }
 }

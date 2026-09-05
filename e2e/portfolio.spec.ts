@@ -109,6 +109,29 @@ test('the quote flow validates, preserves answers, and hands off exact bilingual
   await expect(spanishBrief).toContainText('Crédito: Se descuenta de una Auditoría de rendimiento contratada dentro de 30 días.');
 });
 
+test('the hiring lane exposes the work history, the PDF, and a Markdown copy without hiding the quote from deep links', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('/contact?lane=hiring');
+  await expect(page.getByRole('tab', { name: /Hiring/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('heading', { level: 2, name: 'The résumé, in the open.' })).toBeVisible();
+  await expect(page.locator('#quote')).toBeHidden();
+  await expect(page.getByRole('link', { name: 'Download PDF' })).toHaveAttribute('href', '/resume.pdf');
+  await expect(page.getByRole('heading', { level: 3, name: 'Lead Performance Engineer' })).toBeVisible();
+  await page.getByRole('button', { name: 'Copy as Markdown' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Markdown copied.' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('### Lead Performance Engineer — EPAM Systems');
+
+  await page.getByRole('tab', { name: /Consulting/ }).click();
+  await expect(page).toHaveURL(/lane=consulting/);
+  await expect(page.locator('#quote')).toBeVisible();
+
+  await page.goto('/es/contact?lane=hiring');
+  await expect(page.getByRole('tab', { name: /Contratar/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('button', { name: 'Copiar como Markdown' })).toBeVisible();
+  const hiringAxe = await new AxeBuilder({ page }).include('#hiring').withTags(['wcag2a', 'wcag2aa']).analyze();
+  expect(hiringAxe.violations).toEqual([]);
+});
+
 test('case-study boundaries and static delivery artifacts remain truthful and available', async ({ page, request }) => {
   await page.goto('/work/vitrina');
   await expect(page.getByText(/production WhatsApp channel (?:is )?paused/i).first()).toBeVisible();

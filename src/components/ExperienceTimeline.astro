@@ -1,35 +1,21 @@
 ---
 import experienceData from '../data/experience.json';
 import type { Locale } from '../data/site';
+import { experienceTranslations, formatExperienceDate } from '../data/experience-i18n';
 
 interface Props { locale?: Locale; limit?: number; }
 const { locale = 'en', limit } = Astro.props;
-const dateLocale = locale === 'es' ? 'es-MX' : 'en-US';
-const present = locale === 'es' ? 'Actual' : 'Present';
-const translations: Record<string, { role: string; description: string[] }> = {
-  'EPAM Systems': { role: 'Lead Performance Engineer', description: ['Lidero estrategia de rendimiento para backends y sistemas distribuidos en cloud, con gates de calidad en CI/CD para reducir riesgo.', 'Integro observabilidad y trabajo con ingeniería y liderazgo para encontrar restricciones, planear capacidad y crear prácticas repetibles.'] },
-  'SailPoint Technologies': { role: 'Software Engineer', description: ['Desarrollé pruebas de rendimiento con k6 sobre Kubernetes en AWS y participé en mejoras de latencia y asignación de recursos documentadas en el historial profesional.', 'Exporté logs con CloudWatch y S3 para mejorar el monitoreo de sistemas con PostgreSQL.'] },
-  'Globant Consulting': { role: 'Software Engineer', description: ['Diseñé pruebas cloud con k6 para escenarios de hasta 100k RPS e integré pipelines asíncronos de CI/CD.', 'Analicé resultados en New Relic para orientar recursos de Kubernetes en múltiples servicios.'] },
-  'Kodda MX': { role: 'Backend Engineer', description: ['Mantuve flujos para reclamaciones médicas y pólizas en una startup aceptada en YC Summer 2021.', 'Construí autenticación, visualización y validación con JavaScript y participé en el despliegue sobre Google Cloud y Node.js.'] },
-};
-
-function formatDate(value: string) {
-  if (value === 'Present') return present;
-  const [year, month] = value.split('-').map(Number);
-  return new Date(year, month - 1).toLocaleDateString(dateLocale, { month: 'short', year: 'numeric' });
-}
-
 const jobs = typeof limit === 'number' ? experienceData.slice(0, limit) : experienceData;
 ---
 
 <ol class="experience-list">
   {jobs.map((job, index) => {
-    const localized = locale === 'es' ? translations[job.company] : undefined;
+    const localized = locale === 'es' ? experienceTranslations[job.company] : undefined;
     return (
       <li class="experience-entry">
         <div class="experience-marker"><span>{String(index + 1).padStart(2, '0')}</span></div>
         <div class="experience-content">
-          <div class="experience-title-row"><div><h3>{localized?.role ?? job.role}</h3><p>{job.company}</p></div><time>{formatDate(job.startDate)}—{formatDate(job.endDate)}</time></div>
+          <div class="experience-title-row"><div><h3>{localized?.role ?? job.role}</h3><p>{job.company}</p></div><time>{formatExperienceDate(job.startDate, locale)}—{formatExperienceDate(job.endDate, locale)}</time></div>
           <ul>{(localized?.description ?? job.description).map((item) => <li>{item}</li>)}</ul>
           <div class="tag-list">{job.tech.map((tech) => <span>{tech}</span>)}</div>
         </div>

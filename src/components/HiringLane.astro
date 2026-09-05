@@ -1,0 +1,32 @@
+---
+import ExperienceTimeline from './ExperienceTimeline.astro';
+import EvidenceStrip from './EvidenceStrip.astro';
+import { CopyTextButton } from './islands/CopyTextButton';
+import { marketing } from '../data/content';
+import { experienceEvidence, type Locale } from '../data/site';
+import { buildResumeMarkdown } from '../lib/resume';
+import { getLocalizedPath } from '../lib/quote';
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const copy = marketing[locale];
+const t = copy.contact.hiring;
+const markdown = buildResumeMarkdown(locale);
+---
+
+<div class="hiring-lane" id="hiring">
+  <header class="quote-masthead">
+    <p class="quote-eyebrow">{t.eyebrow}</p>
+    <h2>{t.title}</h2>
+    <p class="quote-intro">{t.intro}</p>
+    <div class="hiring-actions">
+      <a class="button-link button-primary" href="/resume.pdf" download>{t.download}</a>
+      <CopyTextButton client:idle text={markdown} label={t.copy} copiedLabel={t.copied} failedLabel={t.copyFailed} variant="secondary" size="lg" />
+      <a class="text-link" href={getLocalizedPath('/experience', locale)}>{t.fullHistory}<span aria-hidden="true">↗</span></a>
+      <a class="text-link" href={getLocalizedPath('/education', locale)}>{t.education}<span aria-hidden="true">↗</span></a>
+    </div>
+    <p class="availability"><span></span>{copy.home.availability}</p>
+  </header>
+  <EvidenceStrip locale={locale} items={experienceEvidence} label={copy.services.evidenceLabel} />
+  <ExperienceTimeline locale={locale} />
+</div>

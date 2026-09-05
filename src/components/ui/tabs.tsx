@@ -15,8 +15,10 @@ function useTabs() {
   return context;
 }
 
-export function Tabs({ value, onValueChange, children }: { value: string; onValueChange: (value: string) => void; children: ReactNode }) {
-  const baseId = useId();
+/** `id` pins the tab/panel id prefix so server-rendered panels outside the island can reference the tabs. */
+export function Tabs({ value, onValueChange, children, id }: { value: string; onValueChange: (value: string) => void; children: ReactNode; id?: string }) {
+  const generatedId = useId();
+  const baseId = id ?? generatedId;
   return <TabsContext.Provider value={{ value, setValue: onValueChange, baseId }}>{children}</TabsContext.Provider>;
 }
 
