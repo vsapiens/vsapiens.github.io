@@ -10,8 +10,10 @@ import {
   isServiceId,
   parseQuoteAnswers,
   serializeQuoteAnswers,
+  timelineLabels,
   validateQuoteAnswers,
   type BudgetMode,
+  type TimelineKey,
   type QuoteAnswers,
   type QuoteField,
 } from '@/lib/quote';
@@ -85,7 +87,7 @@ export function QuoteWizard({ locale }: { locale: Locale }) {
   const validation = useMemo(() => validateQuoteAnswers(answers), [answers]);
   const brief = useMemo(() => (validation.valid ? buildQuoteBrief(answers, locale) : ''), [answers, locale, validation.valid]);
 
-  const setAnswer = (field: QuoteField, value: string) => {
+  const setAnswer = <F extends QuoteField>(field: F, value: QuoteAnswers[F]) => {
     setAnswers((current) => ({ ...current, [field]: value }));
     if (fieldError === field) setFieldError(null);
   };
@@ -159,8 +161,8 @@ export function QuoteWizard({ locale }: { locale: Locale }) {
           {step === 2 && (
             <div className="quote-step">
               <h3 ref={headingRef} tabIndex={-1}>{t.timeline}</h3>
-              <RadioGroup value={answers.timeline} onValueChange={(value) => setAnswer('timeline', value)} label={t.timeline} className="quote-timeline-options" describedBy={fieldError === 'timeline' ? errorId : undefined} invalid={fieldError === 'timeline'}>
-                {t.timelines.map((timeline, index) => <RadioGroupItem key={timeline} name="quote-timeline" value={timeline} checked={answers.timeline === timeline} inputRef={index === 0 ? timelineRef : undefined}><span className="quote-option-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><strong>{timeline}</strong></RadioGroupItem>)}
+              <RadioGroup value={answers.timeline} onValueChange={(value) => setAnswer('timeline', value as TimelineKey)} label={t.timeline} className="quote-timeline-options" describedBy={fieldError === 'timeline' ? errorId : undefined} invalid={fieldError === 'timeline'}>
+                {(Object.keys(timelineLabels[locale]) as Exclude<TimelineKey, ''>[]).map((key, index) => <RadioGroupItem key={key} name="quote-timeline" value={key} checked={answers.timeline === key} inputRef={index === 0 ? timelineRef : undefined}><span className="quote-option-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><strong>{timelineLabels[locale][key]}</strong></RadioGroupItem>)}
               </RadioGroup>
               {fieldError === 'timeline' && <p className="quote-error" id={errorId} role="alert">{t.errors.timeline}</p>}
 
