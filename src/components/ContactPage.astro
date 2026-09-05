@@ -15,6 +15,6 @@ const whatsappIntro = locale === 'es'
 ---
 <BaseLayout title={copy.meta.contact[0]} description={copy.meta.contact[1]} locale={locale}>
   <PageHero title={copy.contact.title} intro={copy.contact.intro} marker={locale === 'es' ? 'CANAL / CONTACTO' : 'CHANNEL / CONTACT'} />
-  <section class="content-section quote-section"><div class="page-shell"><QuoteWizard locale={locale} client:load /></div></section>
+  <section class="content-section quote-section" id="quote"><div class="page-shell"><QuoteWizard locale={locale} client:load /></div></section>
   <section class="content-section contact-channels"><div class="page-shell"><div class="contact-grid"><a class="contact-primary" href={createWhatsAppUrl(whatsappIntro)} target="_blank" rel="noopener noreferrer"><span>01 / WHATSAPP</span><strong>{copy.contact.whatsapp}</strong><small>+52 81 2000 8400</small></a><a href={`mailto:${contact.email}`}><span>02 / EMAIL</span><strong>{copy.contact.email}</strong><small>{contact.email}</small></a><a href={contact.linkedin} target="_blank" rel="noopener noreferrer"><span>03 / LINKEDIN</span><strong>{copy.contact.linkedin}</strong><small>linkedin.com/in/erickfgonzalez</small></a><a href={contact.github} target="_blank" rel="noopener noreferrer"><span>04 / GITHUB</span><strong>{copy.contact.github}</strong><small>github.com/vsapiens</small></a></div><p class="security-note">{copy.contact.note}</p></div></section>
 </BaseLayout>
