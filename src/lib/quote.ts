@@ -1,4 +1,4 @@
-import { contact, services, type Locale, type Price } from '../data/site';
+import { contact, services, type Locale, type Price, type Service } from '../data/site';
 
 export interface QuoteAnswers {
   serviceId: string;
@@ -35,6 +35,24 @@ export function formatPrice(price: Price, locale: Locale): string {
   const currency = locale === 'en' ? 'USD' : 'MXN';
   const amount = locale === 'en' ? price.usd : price.mxn;
   return `${currency} ${new Intl.NumberFormat('en-US').format(amount)}`;
+}
+
+/** Both currencies on one line, the locale's currency first: `USD 1,500 · MXN 30,000`. */
+export function formatDualPrice(price: Price, locale: Locale): string {
+  const usd = `USD ${new Intl.NumberFormat('en-US').format(price.usd)}`;
+  const mxn = `MXN ${new Intl.NumberFormat('en-US').format(price.mxn)}`;
+  return locale === 'en' ? `${usd} · ${mxn}` : `${mxn} · ${usd}`;
+}
+
+/** Human-readable credit clause for services whose fee is credited toward a larger engagement; empty when none applies. */
+export function formatCreditClause(service: Service, locale: Locale): string {
+  if (!service.credit) return '';
+  const target = services.find((item) => item.id === service.credit?.towardServiceId);
+  if (!target) return '';
+  const days = service.credit.windowDays;
+  return locale === 'es'
+    ? `Se descuenta de una ${target.name.es} contratada dentro de ${days} días.`
+    : `Credited toward a ${target.name.en} booked within ${days} days.`;
 }
 
 export function validateQuoteAnswers(answers: Partial<QuoteAnswers>): QuoteValidation {

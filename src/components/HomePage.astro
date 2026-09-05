@@ -110,6 +110,6 @@ const whatsappIntro = locale === 'es'
   </section>
 
   <section class="closing-section">
-    <div class="page-shell closing-grid"><h2>{copy.home.closingTitle}</h2><div><p>{copy.home.closingBody}</p><div class="hero-actions"><a class="button-link button-signal" href={createWhatsAppUrl(whatsappIntro)} target="_blank" rel="noopener noreferrer">{locale === 'es' ? 'Escribir por WhatsApp' : 'Message on WhatsApp'}<span aria-hidden="true">↗</span></a><a class="button-link button-on-dark" href={`${getLocalizedPath('/contact', locale)}#quote`}>{copy.home.closingCta}</a></div></div></div>
+    <div class="page-shell closing-grid"><h2>{copy.home.closingTitle}</h2><div><p>{copy.home.closingBody}</p><div class="hero-actions"><a class="button-link button-signal" href={createWhatsAppUrl(whatsappIntro)} target="_blank" rel="noopener noreferrer">{locale === 'es' ? 'Escribir por WhatsApp' : 'Message on WhatsApp'}<span aria-hidden="true">↗</span></a><a class="button-link button-on-dark" href={`${getLocalizedPath('/contact', locale)}#quote`}>{copy.home.quoteCta}</a></div></div></div>
   </section>
 </BaseLayout>

@@ -72,7 +72,7 @@ test('the quote flow validates, preserves answers, and hands off exact bilingual
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('/services');
   for (const price of ['USD 500', 'USD 1,500', 'USD 2,500', 'USD 5,000']) await expect(page.getByText(price, { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: /Discuss this service/ }).nth(1).click();
+  await page.getByRole('link', { name: /Quote this service/ }).nth(1).click();
   await expect(page).toHaveURL(/\/contact\?service=performance-audit#quote$/);
   const englishBrief = await completeQuote(page, 'en');
   await expect(englishBrief).toContainText('Service: Performance audit');

@@ -1,8 +1,11 @@
 import { describe, expect, test } from 'vitest';
+import { services } from '../data/site';
 import {
   buildQuoteBrief,
   createMailtoUrl,
   createWhatsAppUrl,
+  formatCreditClause,
+  formatDualPrice,
   formatPrice,
   getLocalizedPath,
   validateQuoteAnswers,
@@ -25,6 +28,19 @@ describe('quote helpers', () => {
   test('formats the approved currency for the active locale', () => {
     expect(formatPrice({ usd: 1500, mxn: 30000 }, 'en')).toBe('USD 1,500');
     expect(formatPrice({ usd: 1500, mxn: 30000 }, 'es')).toBe('MXN 30,000');
+  });
+
+  test('formats both currencies with the locale currency first', () => {
+    expect(formatDualPrice({ usd: 1500, mxn: 30000 }, 'en')).toBe('USD 1,500 · MXN 30,000');
+    expect(formatDualPrice({ usd: 1500, mxn: 30000 }, 'es')).toBe('MXN 30,000 · USD 1,500');
+  });
+
+  test('renders the diagnosis credit clause and nothing for services without credit', () => {
+    const diagnosis = services.find((service) => service.id === 'diagnosis')!;
+    const audit = services.find((service) => service.id === 'performance-audit')!;
+    expect(formatCreditClause(diagnosis, 'en')).toBe('Credited toward a Performance audit booked within 30 days.');
+    expect(formatCreditClause(diagnosis, 'es')).toBe('Se descuenta de una Auditoría de rendimiento contratada dentro de 30 días.');
+    expect(formatCreditClause(audit, 'en')).toBe('');
   });
 
   test('reports every required quote answer when the form is incomplete', () => {
